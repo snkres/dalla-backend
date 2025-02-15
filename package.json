@@ -45,6 +45,7 @@
     "nestjs-pino": "^4.1.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdfjs-dist": "^4.10.38",
     "pino-http": "^10.3.0",
     "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.1.14",
