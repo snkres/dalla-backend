@@ -1,4 +1,4 @@
-import { parseResumeFromPdf } from '@/resume-parser';
+import { parseResumeFromPdf } from '@/shared/resume-parser';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

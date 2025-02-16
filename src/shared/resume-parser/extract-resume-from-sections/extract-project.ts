@@ -1,16 +1,16 @@
 import type { FeatureSet, ResumeSectionToLines, ResumeProject } from '../types';
-import { getSectionLinesByKeywords } from '../extract-resume-from-sections/lib/get-section-lines';
+import { getSectionLinesByKeywords } from './lib/get-section-lines';
 import {
   DATE_FEATURE_SETS,
   getHasText,
   isBold,
-} from '../extract-resume-from-sections/lib/common-features';
-import { divideSectionIntoSubsections } from '../extract-resume-from-sections/lib/subsections';
-import { getTextWithHighestFeatureScore } from '../extract-resume-from-sections/lib/feature-scoring-system';
+} from './lib/common-features';
+import { divideSectionIntoSubsections } from './lib/subsections';
+import { getTextWithHighestFeatureScore } from './lib/feature-scoring-system';
 import {
   getBulletPointsFromLines,
   getDescriptionsLineIdx,
-} from '../extract-resume-from-sections/lib/bullet-points';
+} from './lib/bullet-points';
 
 export const extractProject = (sections: ResumeSectionToLines) => {
   const projects: ResumeProject[] = [];

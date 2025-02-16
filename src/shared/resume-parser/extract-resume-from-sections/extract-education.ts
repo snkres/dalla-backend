@@ -4,19 +4,19 @@ import type {
   ResumeSectionToLines,
   ResumeEducation,
 } from '../types';
-import { getSectionLinesByKeywords } from '../extract-resume-from-sections/lib/get-section-lines';
-import { divideSectionIntoSubsections } from '../extract-resume-from-sections/lib/subsections';
+import { getSectionLinesByKeywords } from './lib/get-section-lines';
+import { divideSectionIntoSubsections } from './lib/subsections';
 import {
   DATE_FEATURE_SETS,
   hasComma,
   hasLetter,
   hasNumber,
-} from '../extract-resume-from-sections/lib/common-features';
-import { getTextWithHighestFeatureScore } from '../extract-resume-from-sections/lib/feature-scoring-system';
+} from './lib/common-features';
+import { getTextWithHighestFeatureScore } from './lib/feature-scoring-system';
 import {
   getBulletPointsFromLines,
   getDescriptionsLineIdx,
-} from '../extract-resume-from-sections/lib/bullet-points';
+} from './lib/bullet-points';
 
 /**
  *              Unique Attribute

@@ -4,19 +4,19 @@ import type {
   ResumeSectionToLines,
   ResumeWorkExperience,
 } from '../types';
-import { getSectionLinesByKeywords } from '../extract-resume-from-sections/lib/get-section-lines';
+import { getSectionLinesByKeywords } from './lib/get-section-lines';
 import {
   DATE_FEATURE_SETS,
   hasNumber,
   getHasText,
   isBold,
-} from '../extract-resume-from-sections/lib/common-features';
-import { divideSectionIntoSubsections } from '../extract-resume-from-sections/lib/subsections';
-import { getTextWithHighestFeatureScore } from '../extract-resume-from-sections/lib/feature-scoring-system';
+} from './lib/common-features';
+import { divideSectionIntoSubsections } from './lib/subsections';
+import { getTextWithHighestFeatureScore } from './lib/feature-scoring-system';
 import {
   getBulletPointsFromLines,
   getDescriptionsLineIdx,
-} from '../extract-resume-from-sections/lib/bullet-points';
+} from './lib/bullet-points';
 
 // prettier-ignore
 const WORK_EXPERIENCE_KEYWORDS_LOWERCASE = ['work', 'experience', 'employment', 'history', 'job'];

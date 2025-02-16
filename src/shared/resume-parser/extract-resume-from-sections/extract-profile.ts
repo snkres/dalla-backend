@@ -1,13 +1,13 @@
 import type { ResumeSectionToLines, TextItem, FeatureSet } from '../types';
-import { getSectionLinesByKeywords } from '../extract-resume-from-sections/lib/get-section-lines';
+import { getSectionLinesByKeywords } from './lib/get-section-lines';
 import {
   isBold,
   hasNumber,
   hasComma,
   hasLetter,
   hasLetterAndIsAllUpperCase,
-} from '../extract-resume-from-sections/lib/common-features';
-import { getTextWithHighestFeatureScore } from '../extract-resume-from-sections/lib/feature-scoring-system';
+} from './lib/common-features';
+import { getTextWithHighestFeatureScore } from './lib/feature-scoring-system';
 
 // Name
 export const matchOnlyLetterSpaceOrPeriod = (item: TextItem) =>

@@ -1,10 +1,10 @@
 import type { Resume } from '../types';
 import type { ResumeSectionToLines } from '../types';
-import { extractProfile } from '../extract-resume-from-sections/extract-profile';
-import { extractEducation } from '../extract-resume-from-sections/extract-education';
-import { extractWorkExperience } from '../extract-resume-from-sections/extract-work-experience';
-import { extractProject } from '../extract-resume-from-sections/extract-project';
-import { extractSkills } from '../extract-resume-from-sections/extract-skills';
+import { extractProfile } from './extract-profile';
+import { extractEducation } from './extract-education';
+import { extractWorkExperience } from './extract-work-experience';
+import { extractProject } from './extract-project';
+import { extractSkills } from './extract-skills';
 
 /**
  * Step 4. Extract resume from sections.

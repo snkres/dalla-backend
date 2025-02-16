@@ -1,5 +1,5 @@
-import { BULLET_POINTS } from '../../extract-resume-from-sections/lib/bullet-points';
-import { isBold } from '../../extract-resume-from-sections/lib/common-features';
+import { BULLET_POINTS } from './bullet-points';
+import { isBold } from './common-features';
 import type { Lines, Line, Subsections } from '../../types';
 
 /**

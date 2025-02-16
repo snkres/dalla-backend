@@ -3,11 +3,11 @@ import type {
   FeaturedSkill,
   ResumeSkills,
 } from '../types';
-import { getSectionLinesByKeywords } from '../extract-resume-from-sections/lib/get-section-lines';
+import { getSectionLinesByKeywords } from './lib/get-section-lines';
 import {
   getBulletPointsFromLines,
   getDescriptionsLineIdx,
-} from '../extract-resume-from-sections/lib/bullet-points';
+} from './lib/bullet-points';
 
 export const extractSkills = (sections: ResumeSectionToLines) => {
   const lines = getSectionLinesByKeywords(sections, ['skill']);
