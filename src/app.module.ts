@@ -10,7 +10,6 @@ import { CompanyModule } from './companies/company.module';
 import { ConfigModule } from '@nestjs/config';
 import { PlatformAuthModule } from './shared/auth/platform/auth.module';
 import { RedisModule } from './shared/auth/miscs/redis.module';
-import { ResumesModule } from './resumes/resumes.module';
 
 @Module({
   imports: [
@@ -37,7 +36,6 @@ import { ResumesModule } from './resumes/resumes.module';
     RedisModule,
     //    ProfessionalModule, there is a bug here , auth guards result in returning 403 for all routes
     CompanyModule,
-    ResumesModule,
     RouterModule.register([
       {
         path: 'professionals',
@@ -47,10 +45,6 @@ import { ResumesModule } from './resumes/resumes.module';
         path: 'company',
         module: CompanyModule,
       },
-      {
-        path: 'resume',
-        module: ResumesModule,
-      }
     ]),
   ],
   controllers: [AppController],
