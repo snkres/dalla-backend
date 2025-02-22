@@ -24,7 +24,7 @@ jobs:
             git reset --hard HEAD
             git clean -f -d
             git config pull.rebase false  # Configure git to use merge
-            git pull origin develop || { echo "Git pull failed"; exit 1; }
+            git pull origin dev || { echo "Git pull failed"; exit 1; }
             pnpm install
             pnpm build
             pm2 restart ecosystem.config.js
@@ -46,7 +46,7 @@ jobs:
             git reset --hard HEAD
             git clean -f -d
             git config pull.rebase false  # Configure git to use merge
-            git pull origin develop || { echo "Git pull failed"; exit 1; }
+            git pull origin dev || { echo "Git pull failed"; exit 1; }
             yarn install
             yarn db:migrate
             yarn build
