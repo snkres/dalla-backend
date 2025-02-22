@@ -34,8 +34,6 @@ model Company {
   email       String
   domain      String
   password    String
-  industry    String
-  size        String
   onboarded   Boolean @default(false)
   suspended   Boolean @default(false)
   verified    Boolean @default(false)
@@ -56,6 +54,7 @@ model CompanyProfile {
   goals       String[]
   targetIndustries String[]
   website     String?
+  meta        Json? // will include phone, social media links, company size, company type, company logo
   headline    String?
   bio         String?
   logo        String?
@@ -73,6 +72,7 @@ model UserProfile {
   gender      Gender?
   bio         String?
   avatar      String
+  meta        Json? // will include phone, location, years of exprerience, skills, website link
   resume      String?
   precentage  Float? @default(20)
   experience  UserExperience[]
@@ -90,9 +90,9 @@ model UserExperience {
   title       String
   company     String
   location    String
+  meta        Json? // will include skills, responsibilities, achievements, type of employment
   startDate   DateTime
   endDate     DateTime
-  description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
