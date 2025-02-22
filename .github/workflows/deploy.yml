@@ -20,7 +20,7 @@ jobs:
           script: |
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            cd /root/apps/securelog-be
+            cd /root/dalla-backend
             git reset --hard HEAD
             git clean -f -d
             git config pull.rebase false  # Configure git to use merge
@@ -42,8 +42,8 @@ jobs:
           script: |
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            cd /root/apps/securelog-be
-             git reset --hard HEAD
+            cd /root/dalla-backend
+            git reset --hard HEAD
             git clean -f -d
             git config pull.rebase false  # Configure git to use merge
             git pull origin develop || { echo "Git pull failed"; exit 1; }
