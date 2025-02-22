@@ -1,10 +1,6 @@
 import type { FeatureSet, ResumeSectionToLines, ResumeProject } from '../types';
 import { getSectionLinesByKeywords } from './lib/get-section-lines';
-import {
-  DATE_FEATURE_SETS,
-  getHasText,
-  isBold,
-} from './lib/common-features';
+import { DATE_FEATURE_SETS, getHasText, isBold } from './lib/common-features';
 import { divideSectionIntoSubsections } from './lib/subsections';
 import { getTextWithHighestFeatureScore } from './lib/feature-scoring-system';
 import {

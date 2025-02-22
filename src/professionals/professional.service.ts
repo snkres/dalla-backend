@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ProfessionalsService {
-async parseResume(fileBuffer: Buffer) {
-  const parsedResume = await parseResumeFromPdf(fileBuffer);
-  return parsedResume;
+  async parseResume(fileBuffer: Buffer) {
+    const parsedResume = await parseResumeFromPdf(fileBuffer);
+    return parsedResume;
   }
 }
