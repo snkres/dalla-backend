@@ -12,14 +12,6 @@ export class CompanyRegisterDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty()
-  industry: string;
-
-  @IsString()
-  @IsNotEmpty()
-  size: string;
-
-  @IsString()
   @IsUrl()
   @IsNotEmpty()
   domain: string;

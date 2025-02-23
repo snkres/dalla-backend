@@ -13,7 +13,6 @@ import { CompanyAuthGuard } from '@/shared/auth/platform/guards/company-auth.gua
 import { CurrentCompany } from '@/shared/decorators/current-auth.decorator';
 import { OnboardingValidation } from './validation/onboarding.validation';
 import { Company } from '@/prisma/postgres';
-import { UpdateCompanyAndProfileDto } from '@/companies/dto/UpdateCompanyAndProfile.dto';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 
@@ -62,7 +61,7 @@ export class CompanyController {
   @HttpCode(HttpStatus.OK)
   async updateCompanyProfile(
     @CurrentCompany() company: Company,
-    @Body() updateData: UpdateCompanyAndProfileDto,
+    @Body() updateData: OnboardingValidation,
   ) {
     const updatedCompany = await this.companyService.updateCompanyProfile(
       company.id,

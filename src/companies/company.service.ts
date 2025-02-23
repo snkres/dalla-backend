@@ -1,23 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
-import { Prisma } from '@/prisma/postgres';
 import { newId } from '@/shared/utils/unique-id';
-import { UpdateCompanyAndProfileDto } from '@/companies/dto/UpdateCompanyAndProfile.dto';
+import { OnboardingValidation } from './validation/onboarding.validation';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class CompanyService {
   constructor(private readonly prisma: PostgresPrismaService) {}
 
-  async onboarding(
-    companyId: string,
-    onboardingData: Omit<Prisma.CompanyProfileCreateWithoutCompanyInput, 'id'>,
-  ) {
+  async onboarding(companyId: string, onboardingData: OnboardingValidation) {
     const id = newId('companyProfile');
     await this.prisma.companyProfile.create({
       data: {
         id,
-        companyId,
+        Company: {
+          connect: {
+            id: companyId,
+            onboarded: true,
+          },
+        },
         ...onboardingData,
+        meta: onboardingData.meta as unknown as InputJsonValue,
+      },
+      include: {
+        Company: true,
       },
     });
     return this.prisma.company.update({
@@ -58,6 +64,7 @@ export class CompanyService {
             headline: true,
             bio: true,
             logo: true,
+            meta: true,
           },
         },
       },
@@ -66,7 +73,7 @@ export class CompanyService {
 
   async updateCompanyProfile(
     companyId: string,
-    updateData: UpdateCompanyAndProfileDto,
+    updateData: OnboardingValidation,
   ) {
     const {
       location,

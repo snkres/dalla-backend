@@ -1,6 +1,8 @@
+import { CompanyProfileMeta } from '@/shared/types/company.types';
 import {
   IsArray,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   IsUrl,
@@ -49,4 +51,9 @@ export class OnboardingValidation {
   @IsNotEmpty()
   @IsOptional()
   logo: string;
+
+  @IsObject()
+  @IsNotEmpty()
+  @IsOptional()
+  meta: CompanyProfileMeta;
 }
