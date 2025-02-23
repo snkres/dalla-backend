@@ -20,6 +20,8 @@ model User {
   onboarded   Boolean @default(false)
   verified    Boolean @default(false)
   suspended   Boolean @default(false)
+  projects    Project[]
+  requests    ProfessionalRequests[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -39,6 +41,7 @@ model Company {
   verified    Boolean @default(false)
 
   CompanyProfile CompanyProfile?
+  projects    Project[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -112,6 +115,54 @@ model UserEducation {
   updatedAt   DateTime @updatedAt
 
   UserProfile UserProfile @relation(fields: [profileId], references: [id])
+}
+
+model Project {
+  id          String      @id
+  title       String
+  description String
+  scope       String
+  jobTitle    String?
+  skills      String[]
+  deliverables String?
+  meta        Json? // will include project type, project size, project budget, project deadline
+  approved    Boolean @default(true)
+  status      ProjectStatus
+  companyId   String
+  assignedProfessionalId String?
+  requests    ProfessionalRequests[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+  professional User?  @relation(fields: [assignedProfessionalId], references: [id])
+}
+
+model ProfessionalRequests {
+  id          String      @id
+  projectId   String
+  professionalId String
+  description String
+
+  status      RequestStatus
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+  professional User @relation(fields: [professionalId], references: [id])
+}
+
+enum ProjectStatus {
+  Open
+  Closed
+  InProgress
+  Completed
+}
+
+enum RequestStatus {
+  Pending
+  Accepted
+  Rejected
 }
 
 enum Gender {
