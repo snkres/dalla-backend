@@ -119,19 +119,23 @@ export class PlatformAuthService {
 
   async validateProfessional(email: string, password: string) {
     const user = await this.prisma.user.findFirst({ where: { email } });
-    if (user) {
-      const isCorrect = await this.bycrptService.comparePassword(
-        password,
-        user.password,
-      );
-      if (user && isCorrect) {
-        return await this.jwtService.createTokens({
-          email: user.email,
-          userId: user.id,
-          type: UserTypes.Professional,
-        });
-      }
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
     }
+
+    const isCorrect = await this.bycrptService.comparePassword(
+      password,
+      user.password,
+    );
+    if (!isCorrect) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    return await this.jwtService.createTokens({
+      email: user.email,
+      userId: user.id,
+      type: UserTypes.Professional,
+    });
   }
 
   async professionalVerify(email: string, otp: string) {
