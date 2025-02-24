@@ -5,6 +5,7 @@ import { newId } from '@/shared/utils/unique-id';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ProfessionalEducationDto } from './dto/professional-education.dto';
+import { JsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProfessionalsService {
@@ -46,7 +47,7 @@ export class ProfessionalsService {
         ...onboardingData,
         id: newId('professionalProfile'),
         avatar: avatarUrl,
-        meta: JSON.parse(JSON.stringify(onboardingData.meta)),
+        meta: onboardingData.meta as unknown as JsonValue,
         education: { create: this.mapEducationData(onboardingData.education) },
         experience: {
           create: this.mapExperienceData(onboardingData.experience),
@@ -79,7 +80,7 @@ export class ProfessionalsService {
       startDate: new Date(exp.startDate),
       endDate: new Date(exp.endDate),
       id: newId('professionalExperience'),
-      meta: JSON.parse(JSON.stringify(exp.meta)),
+      meta: exp.meta as unknown as JsonValue,
     }));
   }
 }
