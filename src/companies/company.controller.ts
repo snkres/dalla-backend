@@ -4,8 +4,11 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
+  Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
@@ -15,6 +18,9 @@ import { OnboardingValidation } from './validation/onboarding.validation';
 import { Company } from '@/prisma/postgres';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { createProjectValidation } from '@/projects/validation/create-project.validation';
+import { ChangeProjectRequestValidation } from './validation/change-project-request.validation';
 
 @Controller()
 @UseGuards(CompanyAuthGuard)
@@ -71,6 +77,51 @@ export class CompanyController {
       updatedCompany,
       'Company profile updated successfully',
       HttpStatus.OK,
+    );
+  }
+
+  @Get('projects')
+  async getProjects(
+    @CurrentCompany() company: Company,
+    @Query() query: PaginationDto,
+  ) {
+    const projects = await this.companyService.companyProjects(
+      company.id,
+      query,
+    );
+    return ResponseUtil.success(projects, 'Company projects retrieved');
+  }
+
+  @Post('projects')
+  async createProject(
+    @CurrentCompany() company: Company,
+    @Body() projectData: createProjectValidation,
+  ) {
+    const project = await this.companyService.createProject({
+      companyId: company.id,
+      ...projectData,
+    });
+    return ResponseUtil.success(
+      project,
+      'Project created successfully',
+      HttpStatus.CREATED,
+    );
+  }
+
+  @Put('projects/:projectId/requests/:requestId')
+  async updateProjectRequest(
+    @CurrentCompany() company: Company,
+    @Param('projectId') projectId: string,
+    @Param('requestId') requestId: string,
+    @Body() request: ChangeProjectRequestValidation,
+  ) {
+    const updatedRequest = await this.companyService.changeProjectRequest(
+      requestId,
+      request.status,
+    );
+    return ResponseUtil.success(
+      updatedRequest,
+      'Project request updated successfully',
     );
   }
 }

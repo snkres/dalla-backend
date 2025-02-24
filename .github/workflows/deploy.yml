@@ -26,6 +26,7 @@ jobs:
             git config pull.rebase false  # Configure git to use merge
             git pull origin dev || { echo "Git pull failed"; exit 1; }
             pnpm install
+            pnpm migrate:postgres
             pnpm build
             pm2 restart ecosystem.config.js
             echo "Waiting for 10sec for logs to be ready..."
