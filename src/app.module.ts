@@ -11,10 +11,14 @@ import { ConfigModule } from '@nestjs/config';
 import { PlatformAuthModule } from './shared/auth/platform/auth.module';
 import { RedisModule } from './shared/auth/miscs/redis.module';
 import { ProjectModule } from './projects/projects.module';
+import DigitalOceanConfig from './shared/config/object-storage.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [DigitalOceanConfig],
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',

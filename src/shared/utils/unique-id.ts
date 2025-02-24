@@ -18,6 +18,8 @@ const prefixes = {
   professional: 'pk',
   project: 'pj',
   projectRequest: 'pr',
+  professionalEducation: 'pe',
+  professionalExperience: 'px',
 } as const;
 
 export function newId(
