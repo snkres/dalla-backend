@@ -15,6 +15,7 @@ import { VerifyDto } from './dto/verify.dto';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { ProfessionalRegisterDto } from '@/shared/auth/platform/dto/register-professional.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
 @Controller('auth')
 export class PlatformAuthController {
   constructor(private readonly authService: PlatformAuthService) {}
@@ -155,6 +156,53 @@ export class PlatformAuthController {
         "Couldn't find the user",
         'something went wrong',
         HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Post('professional/verify')
+  @Public()
+  async professionalRegisterVerify(@Body() verifyOtp: VerifyDto) {
+    try {
+      const result = await this.authService.professionalVerify(
+        verifyOtp.email,
+        verifyOtp.otp,
+      );
+      return ResponseUtil.success(
+        result,
+        'Professional verified successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Post('professional/resend-otp')
+  @Public()
+  async professionalResendOtp(@Body() body: ResendOtpDto) {
+    try {
+      const result = await this.authService.professionalResendOtp(body.email);
+      return ResponseUtil.success(
+        result,
+        'Otp resent successfully',
+        HttpStatus.OK,
       );
     } catch (err) {
       throw new CustomHttpException(

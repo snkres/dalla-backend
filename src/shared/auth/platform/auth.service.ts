@@ -119,18 +119,80 @@ export class PlatformAuthService {
 
   async validateProfessional(email: string, password: string) {
     const user = await this.prisma.user.findFirst({ where: { email } });
-    if (user) {
-      const isCorrect = await this.bycrptService.comparePassword(
-        password,
-        user.password,
-      );
-      if (user && isCorrect) {
-        return await this.jwtService.createTokens({
-          email: user.email,
-          userId: user.id,
-          type: UserTypes.Professional,
-        });
-      }
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
     }
+
+    const isCorrect = await this.bycrptService.comparePassword(
+      password,
+      user.password,
+    );
+    if (!isCorrect) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    return await this.jwtService.createTokens({
+      email: user.email,
+      userId: user.id,
+      type: UserTypes.Professional,
+    });
+  }
+
+  async professionalVerify(email: string, otp: string) {
+    const isValidOtp = await this.otpService.verifyOtp(email, otp);
+    if (!isValidOtp) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        verified: true,
+      },
+    });
+
+    return await this.jwtService.createTokens({
+      email: user.email,
+      userId: user.id,
+      type: UserTypes.Professional,
+    });
+  }
+
+  async professionalResendOtp(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (user.verified) {
+      throw new UnauthorizedException('User already verified');
+    }
+
+    const otp = await this.otpService.generateOtp(email);
+    Logger.log(otp);
+    await this.emailService.sendOtpEmail({
+      to: email,
+      subject: 'Verify your email',
+      html: `
+        <h1>Verify your email</h1>
+        <p>Your OTP is ${otp}</p>`,
+    });
+    return null;
   }
 }
