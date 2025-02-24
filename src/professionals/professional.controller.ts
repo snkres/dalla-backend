@@ -52,13 +52,7 @@ export class ProfessionalsController {
         files: 1,
       },
       fileFilter: (_req, file, callback) =>
-        imageFilter(file.mimetype, callback, [
-          'jpg',
-          'jpeg',
-          'gif',
-          'svg',
-          'png',
-        ]),
+        imageFilter(file.mimetype, callback, ['jpg', 'jpeg', 'svg', 'png']),
     }),
   )
   async professionalOnboarding(
