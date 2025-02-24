@@ -10,6 +10,7 @@ import { CompanyModule } from './companies/company.module';
 import { ConfigModule } from '@nestjs/config';
 import { PlatformAuthModule } from './shared/auth/platform/auth.module';
 import { RedisModule } from './shared/auth/miscs/redis.module';
+import { ProjectModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { RedisModule } from './shared/auth/miscs/redis.module';
     }),
     PlatformAuthModule,
     RedisModule,
-    //    ProfessionalModule, there is a bug here , auth guards result in returning 403 for all routes
+    ProfessionalModule,
+    ProjectModule,
     CompanyModule,
     RouterModule.register([
       {

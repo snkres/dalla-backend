@@ -3,10 +3,17 @@ import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { newId } from '@/shared/utils/unique-id';
 import { OnboardingValidation } from './validation/onboarding.validation';
 import { InputJsonValue } from '@prisma/client/runtime/library';
+import { ProjectService } from '@/projects/projects.service';
+import { createProjectValidation } from '@/projects/validation/create-project.validation';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { RequestStatus } from '@/prisma/postgres';
 
 @Injectable()
 export class CompanyService {
-  constructor(private readonly prisma: PostgresPrismaService) {}
+  constructor(
+    private readonly prisma: PostgresPrismaService,
+    private readonly projectService: ProjectService,
+  ) {}
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {
     const id = newId('companyProfile');
@@ -112,5 +119,27 @@ export class CompanyService {
       company: updatedCompany,
       profile: updatedCompanyProfile,
     };
+  }
+
+  async createProject(data: createProjectValidation) {
+    const project = await this.projectService.createProject(data);
+    return project;
+  }
+
+  async companyProjects(companyId: string, query: PaginationDto) {
+    const requests = await this.projectService.findProjectsByCompanyId(
+      companyId,
+      query,
+    );
+    return requests;
+  }
+
+  async changeProjectRequest(requestId: string, status: RequestStatus) {
+    const project = await this.projectService.modifyRequestStatus(
+      requestId,
+      status,
+    );
+    //? fires notifications from the service itself
+    return project;
   }
 }

@@ -16,6 +16,8 @@ const prefixes = {
   companyProfile: 'cp',
   professionalProfile: 'pp',
   professional: 'pk',
+  project: 'pj',
+  projectRequest: 'pr',
 } as const;
 
 export function newId(
