@@ -34,7 +34,7 @@ import { RedisModule } from './shared/auth/miscs/redis.module';
     }),
     PlatformAuthModule,
     RedisModule,
-    //    ProfessionalModule, there is a bug here , auth guards result in returning 403 for all routes
+    ProfessionalModule, // there is a bug here , auth guards result in returning 403 for all routes
     CompanyModule,
     RouterModule.register([
       {
