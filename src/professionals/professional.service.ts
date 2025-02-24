@@ -4,9 +4,7 @@ import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { newId } from '@/shared/utils/unique-id';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
-import { ObjectStorageService } from '@/shared/upload/object-storage.service';
 import { ProfessionalEducationDto } from './dto/professional-education.dto';
-import { Prisma } from '@/prisma/postgres';
 
 @Injectable()
 export class ProfessionalsService {

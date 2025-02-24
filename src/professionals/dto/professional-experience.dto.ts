@@ -1,15 +1,11 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
-  IsDate,
   IsDateString,
-  IsEnum,
   IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
-  IsUrl,
   ValidateNested,
 } from 'class-validator';
 

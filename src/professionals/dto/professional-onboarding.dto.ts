@@ -1,5 +1,4 @@
 import {
-  ArrayMinSize,
   IsArray,
   IsEnum,
   IsNotEmpty,
@@ -8,7 +7,6 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
-  IsUrl,
   MaxLength,
   MinLength,
   ValidateNested,
