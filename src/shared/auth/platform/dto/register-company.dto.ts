@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, IsUrl, Length } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class CompanyRegisterDto {
   @IsEmail()
@@ -10,11 +10,6 @@ export class CompanyRegisterDto {
   @IsString()
   @IsNotEmpty()
   name: string;
-
-  @IsString()
-  @IsUrl()
-  @IsNotEmpty()
-  domain: string;
 
   @IsString()
   @Length(6, 20)
