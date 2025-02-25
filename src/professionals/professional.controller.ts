@@ -19,6 +19,7 @@ import { imageFilter } from '@/shared/utils/image-file';
 export class ProfessionalsController {
   constructor(private readonly professionalsService: ProfessionalsService) {}
 
+  @UseGuards(ProfessionalAuthGuard)
   @Post('parse-resume')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -28,10 +29,14 @@ export class ProfessionalsController {
       },
     }),
   )
-  async parseResume(@UploadedFile() file: Express.Multer.File) {
+  async parseResume(
+    @CurrentUser() professional,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     try {
       const parsedResume = await this.professionalsService.parseResume(
-        file.buffer,
+        file,
+        professional.id,
       );
       return ResponseUtil.success(parsedResume, 'Resume parsed successfully');
     } catch (err) {

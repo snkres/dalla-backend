@@ -14,9 +14,10 @@ export class ProfessionalsService {
     private readonly uploadService: UploadService,
   ) {}
 
-  async parseResume(fileBuffer: Buffer) {
-    const parsedResume = await parseResumeFromPdf(fileBuffer);
-    return parsedResume;
+  async parseResume(file: Express.Multer.File, professionalId: string) {
+    const resumeUrl = await this.uploadService.uploadFile(file);
+    const parsedResume = await parseResumeFromPdf(file.buffer);
+    return { ...parsedResume, url: resumeUrl };
   }
 
   async onboarding(
