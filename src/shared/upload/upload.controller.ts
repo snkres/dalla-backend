@@ -41,6 +41,7 @@ export class UploadController {
         HttpStatus.OK,
       );
     } catch (err) {
+      console.log(err);
       throw new CustomHttpException(
         err?.message,
         {
