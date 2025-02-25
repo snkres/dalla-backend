@@ -1,5 +1,6 @@
+import { UserTypes } from '@/shared/enums/user-types.enum';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -11,4 +12,8 @@ export class LoginDto {
   @Length(6, 20)
   @IsNotEmpty()
   password: string;
+
+  @IsEnum(UserTypes)
+  @IsNotEmpty()
+  userType: UserTypes;
 }

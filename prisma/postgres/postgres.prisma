@@ -34,7 +34,7 @@ model Company {
   id          String      @id
   name        String
   email       String
-  domain      String
+  domain      String?
   password    String
   onboarded   Boolean @default(false)
   suspended   Boolean @default(false)
