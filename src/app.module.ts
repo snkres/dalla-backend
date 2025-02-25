@@ -13,6 +13,8 @@ import { RedisModule } from './shared/auth/miscs/redis.module';
 import { ProjectModule } from './projects/projects.module';
 import DigitalOceanConfig from './shared/config/object-storage.config';
 import { UploadController } from './shared/upload/upload.controller';
+import { UploadService } from './shared/upload/upload.service';
+import { ObjectStorageService } from './shared/upload/object-storage.service';
 
 @Module({
   imports: [
@@ -55,6 +57,11 @@ import { UploadController } from './shared/upload/upload.controller';
     ]),
   ],
   controllers: [AppController, UploadController],
-  providers: [AppService, PostgresPrismaService],
+  providers: [
+    AppService,
+    UploadService,
+    ObjectStorageService,
+    PostgresPrismaService,
+  ],
 })
 export class AppModule {}
