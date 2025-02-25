@@ -64,10 +64,6 @@ export class ProfessionalOnboardingDto {
   @IsOptional()
   resume: string;
 
-  @IsNumber()
-  @IsOptional()
-  percentage: number;
-
   @IsArray()
   @IsObject({ each: true })
   @ValidateNested()
