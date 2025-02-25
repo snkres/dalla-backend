@@ -15,7 +15,7 @@ import { ProfessionalAuthGuard } from '../auth/platform/guards/professionals-aut
 import { CompanyAuthGuard } from '../auth/platform/guards/company-auth.guard';
 
 @Controller('upload')
-@UseGuards(ProfessionalAuthGuard, CompanyAuthGuard)
+// @UseGuards(ProfessionalAuthGuard, CompanyAuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
