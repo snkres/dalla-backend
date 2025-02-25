@@ -29,15 +29,9 @@ export class ProfessionalsController {
       },
     }),
   )
-  async parseResume(
-    @CurrentUser() professional,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async parseResume(@UploadedFile() file: Express.Multer.File) {
     try {
-      const parsedResume = await this.professionalsService.parseResume(
-        file,
-        professional.id,
-      );
+      const parsedResume = await this.professionalsService.parseResume(file);
       return ResponseUtil.success(parsedResume, 'Resume parsed successfully');
     } catch (err) {
       return new CustomHttpException(
