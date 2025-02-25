@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   const origins = process.env.ORIGINS
-    ? process.env.ORIGINS.replace(' ', '').split(',')
+    ? process.env.ORIGINS.replace(/\s+/g, '').split(',')
     : [];
   const port = process.env.PORT ?? 3000;
   const corsOption = {
@@ -26,6 +26,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   };
+  Logger.log(`Allowed origins: ${origins.join(', ')}`);
 
   app.useLogger(app.get(pinoLogger));
   app.use(cookieParser());
