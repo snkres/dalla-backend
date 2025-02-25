@@ -12,8 +12,6 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { ProfessionalExperienceDto } from './professional-experience.dto';
-import { ProfessionalEducationDto } from './professional-education.dto';
 import { Transform, Type } from 'class-transformer';
 
 class MetaDto {
@@ -38,7 +36,7 @@ class MetaDto {
   socialLinks: string[];
 }
 
-export class ProfessionalOnboardingDto {
+export class ProfessionalUpdateValidation {
   @IsString()
   @IsOptional()
   headline: string;
@@ -65,18 +63,4 @@ export class ProfessionalOnboardingDto {
   @IsString()
   @IsOptional()
   resume: string;
-
-  @IsArray()
-  @IsObject({ each: true })
-  @ValidateNested()
-  @Type(() => ProfessionalExperienceDto)
-  @IsOptional()
-  experience: ProfessionalExperienceDto[];
-
-  @IsArray()
-  @IsObject({ each: true })
-  @ValidateNested()
-  @Type(() => ProfessionalEducationDto)
-  @IsOptional()
-  education: ProfessionalEducationDto[];
 }

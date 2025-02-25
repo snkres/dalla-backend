@@ -6,6 +6,9 @@ import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ProfessionalEducationDto } from './dto/professional-education.dto';
 import { JsonValue } from '@prisma/client/runtime/library';
+import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
+import { pagination } from 'prisma-extension-pagination';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
 
 @Injectable()
 export class ProfessionalsService {
@@ -13,6 +16,29 @@ export class ProfessionalsService {
     private readonly prisma: PostgresPrismaService,
     private readonly uploadService: UploadService,
   ) {}
+
+  async listProfessionals(query: PaginationDto) {
+    return await this.prisma
+      .$extends(pagination())
+      .userProfile.paginate({
+        where: { User: { onboarded: true, suspended: false } },
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+          education: true,
+          experience: true,
+        },
+      })
+      .withPages({
+        limit: query.limit,
+        page: query.page,
+      });
+  }
 
   async parseResume(file: Express.Multer.File) {
     const resumeUrl = await this.uploadService.uploadFile(file);
@@ -24,30 +50,63 @@ export class ProfessionalsService {
     professionalId: string,
     onboardingData: ProfessionalOnboardingDto,
   ) {
-    const avatarUrl = await this.handleAvatarUpload(onboardingData.avatar);
     const profile = await this.createUserProfile(
       professionalId,
       onboardingData,
-      avatarUrl,
     );
     return profile;
   }
 
-  private async handleAvatarUpload(avatarFile: any): Promise<string | null> {
-    return avatarFile ? await this.uploadService.uploadFile(avatarFile) : null;
+  async getProfile(professionalId: string) {
+    return await this.prisma.userProfile.findFirst({
+      where: { userId: professionalId },
+      include: { education: true, experience: true },
+    });
+  }
+
+  async getCurrentUser(userId: string) {
+    return await this.prisma.user.findFirst({
+      where: { id: userId },
+      include: {
+        UserProfile: {
+          include: { education: true, experience: true },
+        },
+      },
+    });
+  }
+
+  async updateProfile(
+    professionalId: string,
+    onboardingData: ProfessionalUpdateValidation,
+  ) {
+    const profile = await this.prisma.userProfile.findFirst({
+      where: { userId: professionalId },
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    await this.prisma.userProfile.update({
+      where: { id: profile.id },
+      data: {
+        ...onboardingData,
+        meta: onboardingData.meta as unknown as JsonValue,
+      },
+    });
+
+    return await this.getProfile(professionalId);
   }
 
   private async createUserProfile(
     professionalId: string,
     onboardingData: ProfessionalOnboardingDto,
-    avatarUrl: string | null,
   ) {
     const profile = await this.prisma.userProfile.create({
       data: {
         User: { connect: { id: professionalId } },
         ...onboardingData,
         id: newId('professionalProfile'),
-        avatar: avatarUrl,
         meta: onboardingData.meta as unknown as JsonValue,
         education: { create: this.mapEducationData(onboardingData.education) },
         experience: {

@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
+  Param,
   Post,
   UploadedFile,
   UseGuards,
@@ -13,14 +15,17 @@ import { ResponseUtil } from '@/shared/utils/response.util';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfessionalAuthGuard } from '@/shared/auth/platform/guards/professionals-auth.guard';
 import { CurrentUser } from '@/shared/decorators/current-auth.decorator';
-import { imageFilter } from '@/shared/utils/image-file';
+import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
+import { User } from '@/prisma/postgres';
+import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
+import { CompanyAuthGuard } from '@/shared/auth/platform/guards/company-auth.guard';
 
 @Controller()
 export class ProfessionalsController {
   constructor(private readonly professionalsService: ProfessionalsService) {}
 
-  @UseGuards(ProfessionalAuthGuard)
   @Post('parse-resume')
+  @UseGuards(ProfessionalAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -42,31 +47,16 @@ export class ProfessionalsController {
     }
   }
 
-  @UseGuards(ProfessionalAuthGuard)
   @Post('onboarding')
-  @UseInterceptors(
-    FileInterceptor('avatar', {
-      limits: {
-        fileSize: 1024 * 1024 * 5, // 5MB
-        files: 1,
-      },
-      fileFilter: (_req, file, callback) =>
-        imageFilter(file.mimetype, callback, ['jpg', 'jpeg', 'svg', 'png']),
-    }),
-  )
+  @UseGuards(ProfessionalAuthGuard)
   async professionalOnboarding(
     @CurrentUser() professional,
-    @Body() form: { body: string },
-    @UploadedFile() avatar: Express.Multer.File,
+    @Body() data: ProfessionalOnboardingDto,
   ) {
     try {
-      const onboardingData = JSON.parse(form.body);
       const onboarding = await this.professionalsService.onboarding(
         professional.id,
-        {
-          ...onboardingData,
-          avatar,
-        },
+        data,
       );
       return ResponseUtil.success(
         onboarding,
@@ -80,5 +70,34 @@ export class ProfessionalsController {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  @Get('profile')
+  @UseGuards(ProfessionalAuthGuard)
+  async getProfile(@CurrentUser() user: User) {
+    const profile = await this.professionalsService.getCurrentUser(user.id);
+    return ResponseUtil.success(profile, 'current user profile retrieved');
+  }
+
+  @Post('profile')
+  @UseGuards(ProfessionalAuthGuard)
+  async updateProfile(
+    @CurrentUser() user: User,
+    @Body() data: ProfessionalUpdateValidation,
+  ) {
+    const updatedProfile = await this.professionalsService.updateProfile(
+      user.id,
+      data,
+    );
+    return ResponseUtil.success(updatedProfile, 'Profile updated successfully');
+  }
+
+  @Get(':professionalId')
+  @UseGuards(CompanyAuthGuard)
+  async getProfessionalProfile(
+    @Param('professionalId') professionalId: string,
+  ) {
+    const profile = await this.professionalsService.getProfile(professionalId);
+    return ResponseUtil.success(profile, 'Professional profile retrieved');
   }
 }
