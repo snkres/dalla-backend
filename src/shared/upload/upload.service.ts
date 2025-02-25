@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectStorageService } from './object-storage.service';
 import 'multer';
+import { customUUID } from '../utils/unique-id';
 
 @Injectable()
 export class UploadService {
@@ -8,16 +9,17 @@ export class UploadService {
 
   async uploadFile(file: Express.Multer.File) {
     const { originalname } = file;
-    const UUID = crypto.randomUUID().split('-')[2];
+    // const ext = originalname.split('.')[1];
+    const UUID = customUUID(16);
 
     await this.objectStorageService.uploadFile(
       file.buffer,
-      originalname + UUID,
+      UUID,
       file.mimetype,
-      { 'x-amz-meta-logo': originalname },
+      { 'x-amz-meta-name': originalname },
     );
 
-    const hash = `${String(originalname + UUID)}`;
+    const hash = `${String(UUID)}`;
     return `${this.objectStorageService.getCdnEndpoint()}${hash}`;
   }
 }

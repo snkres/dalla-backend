@@ -14,15 +14,15 @@ export class ObjectStorageService {
   private readonly s3Client: S3Client;
 
   public getOriginEndpoint = (): string =>
-    `${this.config.protocol}://${this.config.bucketName}.${this.config.endpoint}/`;
+    `${this.config.protocol}://${this.config.bucketName}.${this.config.region}.${this.config.endpoint}/`;
 
   public getCdnEndpoint = (): string =>
     this.config.cdnDisabled
       ? this.getOriginEndpoint()
       : `${this.config.protocol}://${
-          this.config.cdnCustomDomain !== ''
+          this.config.cdnCustomDomain && this.config.cdnCustomDomain !== ''
             ? this.config.cdnCustomDomain
-            : `${this.config.bucketName}.cdn.${this.config.endpoint}`
+            : `${this.config.bucketName}.${this.config.region}.cdn.${this.config.endpoint}`
         }/`;
 
   constructor(

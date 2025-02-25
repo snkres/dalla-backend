@@ -5,14 +5,14 @@ import {
   UploadedFile,
   UseInterceptors,
   HttpStatus,
-  UseGuards,
+  // UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { ResponseUtil } from '../utils/response.util';
 import { CustomHttpException } from '../exceptions/custom-http-exception';
-import { ProfessionalAuthGuard } from '../auth/platform/guards/professionals-auth.guard';
-import { CompanyAuthGuard } from '../auth/platform/guards/company-auth.guard';
+// import { ProfessionalAuthGuard } from '../auth/platform/guards/professionals-auth.guard';
+// import { CompanyAuthGuard } from '../auth/platform/guards/company-auth.guard';
 
 @Controller('upload')
 // @UseGuards(ProfessionalAuthGuard, CompanyAuthGuard)

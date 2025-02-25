@@ -23,7 +23,6 @@ export class CompanyService {
         Company: {
           connect: {
             id: companyId,
-            onboarded: true,
           },
         },
         ...onboardingData,

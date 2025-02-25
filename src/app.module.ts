@@ -12,9 +12,7 @@ import { PlatformAuthModule } from './shared/auth/platform/auth.module';
 import { RedisModule } from './shared/auth/miscs/redis.module';
 import { ProjectModule } from './projects/projects.module';
 import DigitalOceanConfig from './shared/config/object-storage.config';
-import { UploadController } from './shared/upload/upload.controller';
-import { UploadService } from './shared/upload/upload.service';
-import { ObjectStorageService } from './shared/upload/object-storage.service';
+import { ObjectStorageModule } from './shared/upload/object-storage.module';
 
 @Module({
   imports: [
@@ -42,6 +40,7 @@ import { ObjectStorageService } from './shared/upload/object-storage.service';
     }),
     PlatformAuthModule,
     RedisModule,
+    ObjectStorageModule,
     ProfessionalModule,
     ProjectModule,
     CompanyModule,
@@ -56,12 +55,7 @@ import { ObjectStorageService } from './shared/upload/object-storage.service';
       },
     ]),
   ],
-  controllers: [AppController, UploadController],
-  providers: [
-    AppService,
-    UploadService,
-    ObjectStorageService,
-    PostgresPrismaService,
-  ],
+  controllers: [AppController],
+  providers: [AppService, PostgresPrismaService],
 })
 export class AppModule {}
