@@ -14,11 +14,17 @@ async function bootstrap() {
     : [];
   const port = process.env.PORT ?? 3000;
   const corsOption = {
-    origin: origins,
+    origin: function (origin, callback) {
+      if (!origin || origins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
-    // credentials: true,
+    credentials: true,
   };
 
   app.useLogger(app.get(pinoLogger));
