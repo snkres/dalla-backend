@@ -1,4 +1,4 @@
 export enum UserTypes {
-  Company,
-  Professional,
+  Company = 'company',
+  Professional = 'professional',
 }

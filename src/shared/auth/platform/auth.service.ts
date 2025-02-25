@@ -7,7 +7,8 @@ import { OTPService } from '../miscs/otp';
 import { CompanyRegisterDto } from './dto/register-company.dto';
 import { EmailService } from '@/shared/email/email.service';
 import { newId } from '@/shared/utils/unique-id';
-import { ProfessionalRegisterDto } from '@/shared/auth/platform/dto/register-professional.dto';
+import { RegisterValidation } from './dto/register.validation';
+import { ProfessionalRegisterDto } from './dto/register-professional.dto';
 
 @Injectable()
 export class PlatformAuthService {
@@ -34,6 +35,34 @@ export class PlatformAuthService {
         });
       }
     }
+  }
+
+  async validateLogin(email: string, pass: string, type: UserTypes) {
+    if (type === UserTypes.Company) {
+      return await this.validateCompany(email, pass);
+    } else {
+      return await this.validateProfessional(email, pass);
+    }
+  }
+
+  async unifiedRegister(registerDto: RegisterValidation) {
+    const { userType, ...rest } = registerDto;
+    if (userType === UserTypes.Company) {
+      return await this.companyRegister({
+        email: rest.email,
+        password: rest.password,
+        name: rest.name,
+      });
+    } else {
+      return await this.registerProfessional(rest);
+    }
+  }
+
+  async verify(email: string, otp: string, type: UserTypes) {
+    if (type === UserTypes.Company) {
+      return await this.companyVerify(email, otp);
+    }
+    return await this.professionalVerify(email, otp);
   }
 
   async companyRegister(registerDto: CompanyRegisterDto) {
@@ -99,7 +128,7 @@ export class PlatformAuthService {
 
     const hashedPassword = await this.bycrptService.hashPassword(password);
     const otp = await this.otpService.generateOtp(registerDto.email);
-    Logger.log(otp);
+
     await this.emailService.sendOtpEmail({
       to: registerDto.email,
       subject: 'Verify your email',
@@ -169,8 +198,8 @@ export class PlatformAuthService {
     });
   }
 
-  async professionalResendOtp(email: string) {
-    const user = await this.prisma.user.findFirst({
+  async resendOtp(email: string, model: UserTypes) {
+    const user = await this.prisma[model as string].findFirst({
       where: {
         email,
       },
