@@ -31,7 +31,7 @@ export class ObjectStorageService {
   ) {
     this.s3Client = new S3({
       forcePathStyle: false,
-      endpoint: `${config.protocol}://${config.region}.${config.endpoint}`,
+      endpoint: `${config.protocol}://${config.endpoint}`,
       region: config.region,
       credentials: {
         accessKeyId: config.accessKeyId,
