@@ -199,7 +199,9 @@ export class PlatformAuthService {
   }
 
   async resendOtp(email: string, model: UserTypes) {
-    const user = await this.prisma[model as string].findFirst({
+    const user = await this.prisma[
+      model === 'professional' ? 'user' : (model as string)
+    ].findFirst({
       where: {
         email,
       },
