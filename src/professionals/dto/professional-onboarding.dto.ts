@@ -8,13 +8,11 @@ import {
   IsPhoneNumber,
   IsString,
   IsUrl,
-  MaxLength,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { ProfessionalExperienceDto } from './professional-experience.dto';
 import { ProfessionalEducationDto } from './professional-education.dto';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 class MetaDto {
   @IsPhoneNumber()
