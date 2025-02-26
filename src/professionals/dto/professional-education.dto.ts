@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, Matches } from 'class-validator';
 
 export class ProfessionalEducationDto {
   @IsString()
@@ -13,13 +13,17 @@ export class ProfessionalEducationDto {
   @IsNotEmpty()
   field: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  startDate: Date;
+  @IsString()
+  @Matches(/^(\d{4}-\d{2}-\d{2})$/, {
+    message: 'Value must be a valid date string (YYYY-MM-DD)',
+  })
+  startDate: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  endDate: Date;
+  @IsString()
+  @Matches(/^(present|\d{4}-\d{2}-\d{2})$/, {
+    message: 'Value must be a valid date string (YYYY-MM-DD) or "present"',
+  })
+  endDate: string;
 
   @IsString()
   @IsNotEmpty()

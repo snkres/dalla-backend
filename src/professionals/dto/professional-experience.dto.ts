@@ -6,6 +6,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  Matches,
   ValidateNested,
 } from 'class-validator';
 
@@ -46,11 +47,14 @@ export class ProfessionalExperienceDto {
   @IsOptional()
   meta: MetaDto;
 
-  @IsDateString()
-  @IsNotEmpty()
-  startDate: Date;
+  @Matches(/^(\d{4}-\d{2}-\d{2})$/, {
+    message: 'Value must be a valid date string (YYYY-MM-DD)',
+  })
+  startDate: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  endDate: Date;
+  @IsString()
+  @Matches(/^(present|\d{4}-\d{2}-\d{2})$/, {
+    message: 'Value must be a valid date string (YYYY-MM-DD) or "present"',
+  })
+  endDate: string;
 }

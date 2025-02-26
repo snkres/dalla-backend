@@ -128,8 +128,6 @@ export class ProfessionalsService {
   private mapEducationData(education: ProfessionalEducationDto[]) {
     return education?.map((edu) => ({
       ...edu,
-      startDate: new Date(edu.startDate),
-      endDate: new Date(edu.endDate),
       id: newId('professionalEducation'),
     }));
   }
@@ -137,8 +135,6 @@ export class ProfessionalsService {
   private mapExperienceData(experience: any[]) {
     return experience?.map((exp) => ({
       ...exp,
-      startDate: new Date(exp.startDate),
-      endDate: new Date(exp.endDate),
       id: newId('professionalExperience'),
       meta: exp.meta as unknown as JsonValue,
     }));
