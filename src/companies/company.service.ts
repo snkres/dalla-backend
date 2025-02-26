@@ -81,43 +81,15 @@ export class CompanyService {
     companyId: string,
     updateData: OnboardingValidation,
   ) {
-    const {
-      location,
-      areas,
-      goals,
-      targetIndustries,
-      website,
-      headline,
-      bio,
-      logo,
-      ...companyData
-    } = updateData;
-
-    // Update Company
-    const updatedCompany = await this.prisma.company.update({
-      where: { id: companyId },
-      data: companyData,
-    });
-
-    // Update CompanyProfile
     const updatedCompanyProfile = await this.prisma.companyProfile.update({
       where: { companyId },
       data: {
-        location,
-        areas,
-        goals,
-        targetIndustries,
-        website,
-        headline,
-        bio,
-        logo,
+        ...updateData,
+        meta: updateData.meta as unknown as InputJsonValue,
       },
     });
 
-    return {
-      company: updatedCompany,
-      profile: updatedCompanyProfile,
-    };
+    return updatedCompanyProfile;
   }
 
   async createProject(data: createProjectValidation) {
