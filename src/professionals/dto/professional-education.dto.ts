@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import { IsString, IsNotEmpty, IsDateString } from 'class-validator';
 
 export class ProfessionalEducationDto {
@@ -16,12 +15,10 @@ export class ProfessionalEducationDto {
 
   @IsDateString()
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
   startDate: Date;
 
   @IsDateString()
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
   endDate: Date;
 
   @IsString()

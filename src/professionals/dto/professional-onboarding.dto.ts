@@ -8,13 +8,11 @@ import {
   IsPhoneNumber,
   IsString,
   IsUrl,
-  MaxLength,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { ProfessionalExperienceDto } from './professional-experience.dto';
 import { ProfessionalEducationDto } from './professional-education.dto';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 class MetaDto {
   @IsPhoneNumber()
@@ -31,11 +29,9 @@ class MetaDto {
   @IsString({ each: true })
   skills: string[];
 
-  @IsArray()
-  @IsArray({ each: true })
-  @MinLength(2)
-  @MaxLength(2)
-  socialLinks: string[];
+  @IsObject()
+  @IsNotEmpty()
+  socialLinks: Map<string, string>;
 }
 
 export class ProfessionalOnboardingDto {
@@ -52,10 +48,8 @@ export class ProfessionalOnboardingDto {
   bio: string;
 
   @IsUrl()
-  @IsOptional()
   avatar: string;
 
-  @Transform(({ value }) => JSON.parse(value))
   @IsObject()
   @ValidateNested()
   @Type(() => MetaDto)

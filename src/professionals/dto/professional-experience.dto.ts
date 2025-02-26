@@ -1,4 +1,4 @@
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
@@ -40,7 +40,6 @@ export class ProfessionalExperienceDto {
   @IsNotEmpty()
   location: string;
 
-  @Transform(({ value }) => JSON.parse(value))
   @IsObject()
   @ValidateNested()
   @Type(() => MetaDto)
@@ -49,11 +48,9 @@ export class ProfessionalExperienceDto {
 
   @IsDateString()
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
   startDate: Date;
 
   @IsDateString()
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
   endDate: Date;
 }
