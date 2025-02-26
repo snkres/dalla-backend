@@ -8,7 +8,7 @@ const DigitalOceanConfig = registerAs('digitalOcean', () => ({
   region: String(process.env.DO_SPACES_REGION ?? 'sfo3'),
   bucketName: String(process.env.DO_SPACES_BUCKET_NAME ?? 'dalla'),
   cdnCustomDomain: String(process.env.DO_SPACES_SUBDOMAIN ?? ''),
-  cdnDisabled: Boolean(process.env.DO_SPACES_CDN_DISABLED),
+  cdnDisabled: process.env.DO_SPACES_CDN_DISABLED === 'true',
 }));
 
 export default DigitalOceanConfig;
