@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDateString, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, Matches } from 'class-validator';
 
 export class ProfessionalEducationDto {
   @IsString()
