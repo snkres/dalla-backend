@@ -72,18 +72,11 @@ export class CompanyOrProfessionalAuthGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       });
 
-      const record =
-        model === 'company'
-          ? await this.prisma.company.findUnique({
-              where: {
-                id: payload.userId,
-              },
-            })
-          : await this.prisma.user.findUnique({
-              where: {
-                id: payload.userId,
-              },
-            });
+      const record = await this.prisma[model as string].findUnique({
+        where: {
+          id: payload.userId,
+        },
+      });
 
       if (record) {
         request[model] = record;
