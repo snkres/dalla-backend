@@ -78,6 +78,17 @@ export class ProjectService {
   async createProject(data: createProjectValidation) {
     const id = newId('project');
     const { companyId, meta, ...rest } = data;
+
+    // Check if company exists
+    const company = await this.postgresService.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    if (!company) {
+      throw new Error('Company does not exist');
+    }
+
     return this.postgresService.project.create({
       data: {
         id,

@@ -1,4 +1,3 @@
-import { IsExist } from '@/shared/decorators/isExist.decorator';
 import { ProjectMeta } from '@/shared/types/project.types';
 import {
   IsArray,
@@ -36,7 +35,7 @@ export class createProjectValidation {
 
   @IsString()
   @IsNotEmpty()
-  @IsExist('Company', 'id')
+  // @IsExist('Company', 'id') // The companyId validation was moved to the service due to weird dependency issues
   companyId: string;
 
   @IsObject()
