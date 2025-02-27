@@ -101,15 +101,28 @@ export class PlatformAuthService {
     if (!isValidOtp) {
       throw new UnauthorizedException('Invalid OTP');
     }
-    const user = await this.prisma.company.findFirst({
+    const company = await this.prisma.company.findFirst({
       where: {
         email,
       },
     });
 
+    if (!company) {
+      throw new UnauthorizedException('Company not found');
+    }
+
+    await this.prisma.company.update({
+      where: {
+        id: company.id,
+      },
+      data: {
+        verified: true,
+      },
+    });
+
     return await this.jwtService.createTokens({
-      email: user.email,
-      userId: user.id,
+      email: company.email,
+      userId: company.id,
       type: UserTypes.Company,
     });
   }
