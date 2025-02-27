@@ -2,11 +2,10 @@ import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ProjectService } from './projects.service';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { ResponseUtil } from '@/shared/utils/response.util';
-import { ProfessionalAuthGuard } from '@/shared/auth/platform/guards/professionals-auth.guard';
-import { CompanyAuthGuard } from '@/shared/auth/platform/guards/company-auth.guard';
+import { CompanyOrProfessionalAuthGuard } from '@/shared/auth/platform/guards/company-or-professional-auth.guard';
 
 @Controller('projects')
-@UseGuards(CompanyAuthGuard, ProfessionalAuthGuard)
+@UseGuards(CompanyOrProfessionalAuthGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
