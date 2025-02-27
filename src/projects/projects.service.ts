@@ -12,7 +12,7 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 export class ProjectService {
   constructor(private readonly postgresService: PostgresPrismaService) {}
 
-  index(query: PaginationDto) {
+  async index(query: PaginationDto) {
     const { page, limit } = query;
 
     return this.postgresService
@@ -30,7 +30,7 @@ export class ProjectService {
       });
   }
 
-  findProjectsByCompanyId(companyId: string, query: PaginationDto) {
+  async findProjectsByCompanyId(companyId: string, query: PaginationDto) {
     const { page, limit } = query;
     return this.postgresService
       .$extends(pagination())
@@ -50,7 +50,10 @@ export class ProjectService {
       });
   }
 
-  findProjectsByProfessionalId(professionalId: string, query: PaginationDto) {
+  async findProjectsByProfessionalId(
+    professionalId: string,
+    query: PaginationDto,
+  ) {
     const { page, limit } = query;
     return this.postgresService
       .$extends(pagination())
@@ -72,7 +75,7 @@ export class ProjectService {
       });
   }
 
-  createProject(data: createProjectValidation) {
+  async createProject(data: createProjectValidation) {
     const id = newId('project');
     const { companyId, meta, ...rest } = data;
     return this.postgresService.project.create({
@@ -90,7 +93,7 @@ export class ProjectService {
     });
   }
 
-  findProjectById(id: string) {
+  async findProjectById(id: string) {
     return this.postgresService.project.findUnique({
       where: {
         id,
@@ -103,7 +106,7 @@ export class ProjectService {
     });
   }
 
-  changeProjectStatus(id: string, status: ProjectStatus) {
+  async changeProjectStatus(id: string, status: ProjectStatus) {
     return this.postgresService.project.update({
       where: {
         id,
@@ -114,7 +117,10 @@ export class ProjectService {
     });
   }
 
-  createRequest(professionalId: string, data: createProjectRequestValidation) {
+  async createRequest(
+    professionalId: string,
+    data: createProjectRequestValidation,
+  ) {
     const id = newId('projectRequest');
     return this.postgresService.professionalRequests.create({
       data: {
