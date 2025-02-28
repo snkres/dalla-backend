@@ -10,6 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { PinoLogger } from 'nestjs-pino';
 import { IS_PUBLIC_KEY } from '@/shared/decorators/isPublic.decorator';
+import { UserTypes } from '@/shared/enums/user-types.enum';
 
 @Injectable()
 export class CompanyOrProfessionalAuthGuard implements CanActivate {
@@ -39,15 +40,8 @@ export class CompanyOrProfessionalAuthGuard implements CanActivate {
       throw new UnauthorizedException('No token provided');
     }
 
-    // Try Company Auth
-    const company = await this.authenticate(token, request, 'company');
-    if (company) {
-      return true;
-    }
-
-    // Try Professional Auth
-    const user = await this.authenticate(token, request, 'user');
-    if (user) {
+    const record = await this.authenticate(token, request);
+    if (record) {
       return true;
     }
 
@@ -62,17 +56,19 @@ export class CompanyOrProfessionalAuthGuard implements CanActivate {
     return authHeader.split(' ')[1];
   }
 
-  private async authenticate(
-    token: string,
-    request: Request,
-    model: 'company' | 'user',
-  ) {
+  private async authenticate(token: string, request: Request) {
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET,
       });
 
-      const record = await this.prisma[model as string].findUnique({
+      const model = payload.userId.startsWith('ck')
+        ? UserTypes.Company
+        : UserTypes.Professional;
+
+      const record = await this.prisma[
+        model === 'professional' ? 'user' : (model as string)
+      ].findUnique({
         where: {
           id: payload.userId,
         },
