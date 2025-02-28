@@ -64,11 +64,9 @@ export class CompanyOrProfessionalAuthGuard implements CanActivate {
 
       const model = payload.userId.startsWith('ck')
         ? UserTypes.Company
-        : UserTypes.Professional;
+        : UserTypes.User;
 
-      const record = await this.prisma[
-        model === 'professional' ? 'user' : (model as string)
-      ].findUnique({
+      const record = await this.prisma[model as string].findUnique({
         where: {
           id: payload.userId,
         },

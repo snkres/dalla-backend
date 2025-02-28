@@ -176,7 +176,7 @@ export class PlatformAuthService {
     return await this.jwtService.createTokens({
       email: user.email,
       userId: user.id,
-      type: UserTypes.Professional,
+      type: UserTypes.User,
     });
   }
 
@@ -207,14 +207,12 @@ export class PlatformAuthService {
     return await this.jwtService.createTokens({
       email: user.email,
       userId: user.id,
-      type: UserTypes.Professional,
+      type: UserTypes.User,
     });
   }
 
   async resendOtp(email: string, model: UserTypes) {
-    const user = await this.prisma[
-      model === 'professional' ? 'user' : (model as string)
-    ].findFirst({
+    const user = await this.prisma[model as string].findFirst({
       where: {
         email,
       },
