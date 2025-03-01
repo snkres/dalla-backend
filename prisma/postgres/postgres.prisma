@@ -94,8 +94,8 @@ model UserExperience {
   company     String
   location    String
   meta        Json? // will include skills, responsibilities, achievements, type of employment
-  startDate   DateTime
-  endDate     DateTime
+  startDate   String
+  endDate     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -108,8 +108,8 @@ model UserEducation {
   school      String
   degree      String
   field       String
-  startDate   DateTime
-  endDate     DateTime
+  startDate   String
+  endDate     String
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

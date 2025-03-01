@@ -6,6 +6,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -47,10 +48,11 @@ export class ProfessionalExperienceDto {
   meta: MetaDto;
 
   @IsDateString()
-  @IsNotEmpty()
-  startDate: Date;
+  startDate: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  endDate: Date;
+  @ValidateIf(({ endDate }) => endDate !== 'present')
+  @IsDateString(undefined, {
+    message: 'endDate must be a valid date or "present"',
+  })
+  endDate: string;
 }

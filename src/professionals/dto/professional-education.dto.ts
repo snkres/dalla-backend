@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  ValidateIf,
+  IsDateString,
+} from 'class-validator';
 
 export class ProfessionalEducationDto {
   @IsString()
@@ -14,12 +19,13 @@ export class ProfessionalEducationDto {
   field: string;
 
   @IsDateString()
-  @IsNotEmpty()
-  startDate: Date;
+  startDate: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  endDate: Date;
+  @ValidateIf(({ endDate }) => endDate !== 'present')
+  @IsDateString(undefined, {
+    message: 'endDate must be a valid date or "present"',
+  })
+  endDate: string;
 
   @IsString()
   @IsNotEmpty()
