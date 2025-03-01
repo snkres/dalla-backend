@@ -53,14 +53,22 @@ export class CompanyController {
 
   @Get('profile')
   async getProfile(@CurrentCompany() company: Company) {
-    const companyProfile = await this.companyService.getCompanyProfile(
-      company.id,
-    );
-    return ResponseUtil.success(
-      companyProfile,
-      'Company profile retrieved successfully',
-      HttpStatus.OK,
-    );
+    try {
+      const companyProfile = await this.companyService.getCompanyProfile(
+        company.id,
+      );
+      return ResponseUtil.success(
+        companyProfile,
+        'Company profile retrieved successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Patch('profile')
@@ -69,15 +77,23 @@ export class CompanyController {
     @CurrentCompany() company: Company,
     @Body() updateData: OnboardingValidation,
   ) {
-    const updatedCompany = await this.companyService.updateCompanyProfile(
-      company.id,
-      updateData,
-    );
-    return ResponseUtil.success(
-      updatedCompany,
-      'Company profile updated successfully',
-      HttpStatus.OK,
-    );
+    try {
+      const updatedCompany = await this.companyService.updateCompanyProfile(
+        company.id,
+        updateData,
+      );
+      return ResponseUtil.success(
+        updatedCompany,
+        'Company profile updated successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Get('projects')
@@ -85,11 +101,19 @@ export class CompanyController {
     @CurrentCompany() company: Company,
     @Query() query: PaginationDto,
   ) {
-    const projects = await this.companyService.companyProjects(
-      company.id,
-      query,
-    );
-    return ResponseUtil.success(projects, 'Company projects retrieved');
+    try {
+      const projects = await this.companyService.companyProjects(
+        company.id,
+        query,
+      );
+      return ResponseUtil.success(projects, 'Company projects retrieved');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Post('projects')
@@ -97,15 +121,23 @@ export class CompanyController {
     @CurrentCompany() company: Company,
     @Body() projectData: createProjectValidation,
   ) {
-    const project = await this.companyService.createProject({
-      companyId: company.id,
-      ...projectData,
-    });
-    return ResponseUtil.success(
-      project,
-      'Project created successfully',
-      HttpStatus.CREATED,
-    );
+    try {
+      const project = await this.companyService.createProject({
+        companyId: company.id,
+        ...projectData,
+      });
+      return ResponseUtil.success(
+        project,
+        'Project created successfully',
+        HttpStatus.CREATED,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Put('projects/:projectId/requests/:requestId')
@@ -115,13 +147,21 @@ export class CompanyController {
     @Param('requestId') requestId: string,
     @Body() request: ChangeProjectRequestValidation,
   ) {
-    const updatedRequest = await this.companyService.changeProjectRequest(
-      requestId,
-      request.status,
-    );
-    return ResponseUtil.success(
-      updatedRequest,
-      'Project request updated successfully',
-    );
+    try {
+      const updatedRequest = await this.companyService.changeProjectRequest(
+        requestId,
+        request.status,
+      );
+      return ResponseUtil.success(
+        updatedRequest,
+        'Project request updated successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

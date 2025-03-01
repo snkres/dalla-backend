@@ -27,7 +27,7 @@ export class RegisterValidation {
       'Username must only contain letters and numbers without spaces or symbols',
   })
   @MinLength(4)
-  @ValidateIf((o) => o.userType === UserTypes.Professional)
+  @ValidateIf((o) => o.userType === UserTypes.User)
   username: string;
 
   @IsString()

@@ -60,7 +60,19 @@ export class ProfessionalsService {
   async getProfile(professionalId: string) {
     return await this.prisma.userProfile.findFirst({
       where: { userId: professionalId },
-      include: { education: true, experience: true },
+      include: {
+        User: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            verified: true,
+            username: true,
+          },
+        },
+        education: true,
+        experience: true,
+      },
     });
   }
 

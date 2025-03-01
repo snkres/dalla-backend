@@ -4,6 +4,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
@@ -79,7 +80,7 @@ export class ProfessionalsController {
     return ResponseUtil.success(profile, 'current user profile retrieved');
   }
 
-  @Post('profile')
+  @Patch('profile')
   @UseGuards(ProfessionalAuthGuard)
   async updateProfile(
     @CurrentUser() user: User,
