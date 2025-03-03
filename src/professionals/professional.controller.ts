@@ -117,14 +117,13 @@ export class ProfessionalsController {
 
   @Get('me/projects')
   async getAssignedProjects(
-    @Param('professionalId', new IdValidationPipe('professional'))
-    professionalId: string,
+    @CurrentUser() professional: User,
     @Query() query: PaginationDto,
   ) {
     try {
       const projects =
         await this.professionalsService.findProjectsByProfessionalId(
-          professionalId,
+          professional.id,
           query,
         );
       return ResponseUtil.success(
@@ -145,7 +144,7 @@ export class ProfessionalsController {
 
   // Project requests
 
-  @Post('me/requests')
+  @Post('projects/:projectId/requests')
   async createProjectRequest(
     @CurrentUser() professional: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
@@ -170,7 +169,7 @@ export class ProfessionalsController {
     }
   }
 
-  @Get(':professionalId/requests')
+  @Get('me/requests')
   async getProfessionalRequests(
     @CurrentUser() user: User,
     @Query() query: PaginationDto,
