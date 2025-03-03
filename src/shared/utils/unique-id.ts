@@ -1,17 +1,18 @@
 let nanoid: any, generateOtp: any;
 
+export const nanoIdAlphabet =
+  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
 import('nanoid')
   .then(({ customAlphabet }) => {
-    nanoid = customAlphabet(
-      '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
-    );
+    nanoid = customAlphabet(nanoIdAlphabet);
     generateOtp = customAlphabet('0123456789', 4);
   })
   .catch((error) => {
     console.error('Error importing nanoid:', error);
   });
 
-const prefixes = {
+export const prefixes = {
   company: 'ck',
   companyProfile: 'cp',
   professionalProfile: 'pp',

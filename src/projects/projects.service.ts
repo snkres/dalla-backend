@@ -1,10 +1,9 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { newId } from '@/shared/utils/unique-id';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { createProjectValidation } from './validation/create-project.validation';
 import { ProjectStatus, RequestStatus } from '@/prisma/postgres';
 import { JsonObject } from '@prisma/client/runtime/library';
-import { createProjectRequestValidation } from './validation/create-request.validation';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 
@@ -12,12 +11,55 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 export class ProjectService {
   constructor(private readonly postgresService: PostgresPrismaService) {}
 
-  async index(query: PaginationDto) {
+  async createProject(companyId: string, data: createProjectValidation) {
+    const id = newId('project');
+    const { meta, ...rest } = data;
+
+    // Check if company exists
+    const company = await this.postgresService.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    if (!company) {
+      throw new NotFoundException('Company does not exist');
+    }
+
+    return this.postgresService.project.create({
+      data: {
+        id,
+        status: ProjectStatus.Open,
+        meta: meta as unknown as JsonObject,
+        ...rest,
+        company: {
+          connect: {
+            id: companyId,
+          },
+        },
+      },
+    });
+  }
+
+  async findProjectById(id: string) {
+    return this.postgresService.project.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        company: true,
+        requests: true,
+        professional: true,
+      },
+    });
+  }
+
+  async index(query: PaginationDto, status?: ProjectStatus) {
     const { page, limit } = query;
 
     return this.postgresService
       .$extends(pagination())
       .project.paginate({
+        where: { status },
         include: {
           company: true,
           professional: true,
@@ -75,112 +117,77 @@ export class ProjectService {
       });
   }
 
-  async createProject(data: createProjectValidation) {
-    const id = newId('project');
-    const { companyId, meta, ...rest } = data;
-
-    // Check if company exists
-    const company = await this.postgresService.company.findUnique({
-      where: {
-        id: companyId,
-      },
-    });
-    if (!company) {
-      throw new Error('Company does not exist');
-    }
-
-    return this.postgresService.project.create({
-      data: {
-        id,
-        status: ProjectStatus.Open,
-        meta: meta as unknown as JsonObject,
-        ...rest,
-        company: {
-          connect: {
-            id: companyId,
-          },
-        },
-      },
-    });
-  }
-
-  async findProjectById(id: string) {
-    return this.postgresService.project.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        company: true,
-        requests: true,
-        professional: true,
-      },
-    });
-  }
-
-  async changeProjectStatus(id: string, status: ProjectStatus) {
-    return this.postgresService.project.update({
-      where: {
-        id,
-      },
-      data: {
-        status,
-      },
-    });
-  }
-
-  async createRequest(
-    professionalId: string,
-    data: createProjectRequestValidation,
+  async modifyProject(
+    companyId: string,
+    id: string,
+    data: createProjectValidation,
   ) {
-    const id = newId('projectRequest');
-    return this.postgresService.professionalRequests.create({
-      data: {
-        id,
-        status: RequestStatus.Pending,
-        description: data.description,
-        professional: {
-          connect: {
-            id: professionalId,
-          },
-        },
-        project: {
-          connect: {
-            id: data.projectId,
-          },
-        },
-      },
-      include: {
-        professional: true,
-        project: true,
-      },
-    });
-  }
-
-  async modifyRequestStatus(requestId: string, status: RequestStatus) {
-    const request = await this.postgresService.professionalRequests.update({
-      where: {
-        id: requestId,
-      },
-      data: {
-        status,
-      },
-    });
-
-    if (status === RequestStatus.Accepted) {
-      await this.postgresService.project.update({
+    const { meta, ...rest } = data;
+    try {
+      return this.postgresService.project.update({
         where: {
-          id: request.projectId,
+          id,
+          companyId,
         },
         data: {
-          status: ProjectStatus.InProgress,
-          professional: {
-            connect: {
-              id: request.professionalId,
-            },
-          },
+          meta: meta as unknown as JsonObject,
+          ...rest,
+          approved: false,
         },
       });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Project not found or does not belong to this company',
+        );
+      }
+      throw err;
     }
-    return request;
+  }
+
+  async deleteProject(companyId: string, id: string) {
+    try {
+      return this.postgresService.project.update({
+        where: {
+          id,
+          companyId,
+        },
+        data: {
+          status: ProjectStatus.Closed,
+        },
+      });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Project not found or does not belong to this company',
+        );
+      }
+      throw err;
+    }
+  }
+
+  async changeProjectStatus(
+    companyId: string,
+    id: string,
+    status: ProjectStatus,
+  ) {
+    try {
+      return this.postgresService.project.update({
+        where: {
+          id,
+          companyId,
+        },
+        data: {
+          status,
+        },
+      });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Project not found or does not belong to this company',
+        );
+      }
+      throw err;
+    }
   }
 }

@@ -127,7 +127,7 @@ model Project {
   deliverables String?
   meta        Json? // will include project type, project size, project budget, project deadline
   approved    Boolean @default(true)
-  status      ProjectStatus
+  status      ProjectStatus @default(Open)
   companyId   String
   assignedProfessionalId String?
   requests    ProfessionalRequests[]
@@ -150,7 +150,9 @@ model ProfessionalRequests {
 
   project Project @relation(fields: [projectId], references: [id])
   professional User @relation(fields: [professionalId], references: [id])
+  @@unique([projectId, professionalId])
 }
+
 
 enum ProjectStatus {
   Open
