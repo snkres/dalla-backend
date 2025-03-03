@@ -2,7 +2,7 @@ import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { newId } from '@/shared/utils/unique-id';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createProjectValidation } from './validation/create-project.validation';
-import { ProjectStatus, RequestStatus } from '@/prisma/postgres';
+import { ProjectStatus } from '@/prisma/postgres';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';

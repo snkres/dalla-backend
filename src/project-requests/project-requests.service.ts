@@ -8,7 +8,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { errorToJSON } from 'bullmq';
 import { pagination } from 'prisma-extension-pagination';
 
 @Injectable()
