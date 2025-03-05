@@ -86,11 +86,22 @@ export class ProfessionalsController {
     @CurrentUser() user: User,
     @Body() data: ProfessionalUpdateValidation,
   ) {
-    const updatedProfile = await this.professionalsService.updateProfile(
-      user.id,
-      data,
-    );
-    return ResponseUtil.success(updatedProfile, 'Profile updated successfully');
+    try {
+      const updatedProfile = await this.professionalsService.updateProfile(
+        user.id,
+        data,
+      );
+      return ResponseUtil.success(
+        updatedProfile,
+        'Profile updated successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Get(':professionalId')
