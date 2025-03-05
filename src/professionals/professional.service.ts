@@ -99,11 +99,21 @@ export class ProfessionalsService {
       throw new Error('Profile not found');
     }
 
+    const { education, experience, meta, ...rest } = onboardingData;
     await this.prisma.userProfile.update({
       where: { id: profile.id },
       data: {
-        ...onboardingData,
-        meta: onboardingData.meta as unknown as JsonValue,
+        ...rest,
+        meta: meta as unknown as JsonValue,
+        // Delete all existing education and experience and create new ones
+        education: {
+          deleteMany: {},
+          create: this.mapEducationData(education),
+        },
+        experience: {
+          deleteMany: {},
+          create: this.mapExperienceData(experience),
+        },
       },
     });
 
