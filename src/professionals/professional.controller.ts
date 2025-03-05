@@ -25,6 +25,7 @@ import { createProjectRequestValidation } from '@/projects/validation/create-req
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
+import { FetchProjectsOptionsDto } from '@/projects/dto/fetch-projects-options.dto';
 
 @Controller()
 @UseGuards(ProfessionalAuthGuard)
@@ -98,7 +99,7 @@ export class ProfessionalsController {
   @Get('projects')
   async getProjects(
     @CurrentUser() professional: User,
-    @Query() query: PaginationDto & { assigned?: boolean },
+    @Query() query: FetchProjectsOptionsDto,
   ) {
     const { limit, page, assigned } = query;
     try {
