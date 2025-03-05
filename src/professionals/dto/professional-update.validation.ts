@@ -8,11 +8,11 @@ import {
   IsPhoneNumber,
   IsString,
   IsUrl,
-  MaxLength,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
+import { UpdateProfessionalExperienceDto } from './professional-experience.dto';
+import { UpdateProfessionalEducationDto } from './professional-education.dto';
 
 class MetaDto {
   @IsPhoneNumber()
@@ -29,11 +29,9 @@ class MetaDto {
   @IsString({ each: true })
   skills: string[];
 
-  @IsArray()
-  @IsArray({ each: true })
-  @MinLength(2)
-  @MaxLength(2)
-  socialLinks: string[];
+  @IsObject()
+  @IsNotEmpty()
+  socialLinks: Map<string, string>;
 }
 
 export class ProfessionalUpdateValidation {
@@ -53,7 +51,6 @@ export class ProfessionalUpdateValidation {
   @IsOptional()
   avatar: string;
 
-  @Transform(({ value }) => JSON.parse(value))
   @IsObject()
   @ValidateNested()
   @Type(() => MetaDto)
@@ -63,4 +60,18 @@ export class ProfessionalUpdateValidation {
   @IsString()
   @IsOptional()
   resume: string;
+
+  @IsArray()
+  @IsObject({ each: true })
+  @ValidateNested()
+  @Type(() => UpdateProfessionalExperienceDto)
+  @IsOptional()
+  experience: UpdateProfessionalExperienceDto[];
+
+  @IsArray()
+  @IsObject({ each: true })
+  @ValidateNested()
+  @Type(() => UpdateProfessionalEducationDto)
+  @IsOptional()
+  education: UpdateProfessionalEducationDto[];
 }

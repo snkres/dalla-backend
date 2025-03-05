@@ -56,3 +56,10 @@ export class ProfessionalExperienceDto {
   })
   endDate: string;
 }
+
+export class UpdateProfessionalExperienceDto extends ProfessionalExperienceDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  id: string;
+}

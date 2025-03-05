@@ -4,7 +4,10 @@ import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { newId } from '@/shared/utils/unique-id';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
-import { ProfessionalEducationDto } from './dto/professional-education.dto';
+import {
+  ProfessionalEducationDto,
+  UpdateProfessionalEducationDto,
+} from './dto/professional-education.dto';
 import { JsonValue } from '@prisma/client/runtime/library';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
 import { pagination } from 'prisma-extension-pagination';
@@ -13,6 +16,10 @@ import { createProjectRequestValidation } from '@/projects/validation/create-req
 import { ProjectRequestsService } from '@/project-requests/project-requests.service';
 import { ProjectService } from '@/projects/projects.service';
 import { FilterProjectsOptions } from '@/shared/types/professionals.types';
+import {
+  ProfessionalExperienceDto,
+  UpdateProfessionalExperienceDto,
+} from './dto/professional-experience.dto';
 
 @Injectable()
 export class ProfessionalsService {
@@ -97,23 +104,60 @@ export class ProfessionalsService {
     professionalId: string,
     onboardingData: ProfessionalUpdateValidation,
   ) {
-    const profile = await this.prisma.userProfile.findFirst({
-      where: { userId: professionalId },
-    });
+    const { education, experience, meta, ...rest } = onboardingData;
+    const mappedEducation = this.mapEducationData(education);
+    const mappedExperience = this.mapExperienceData(experience);
 
-    if (!profile) {
-      throw new Error('Profile not found');
+    try {
+      const updatedProfile = await this.prisma.userProfile.update({
+        where: { userId: professionalId },
+        data: {
+          ...rest,
+          meta: meta as unknown as JsonValue,
+          // Add the new ones, update the existing ones, and delete the rest
+          education: {
+            deleteMany: {
+              id: { notIn: mappedEducation.map((edu) => edu.id) },
+            },
+            upsert: mappedEducation.map((edu) => ({
+              where: { id: edu.id },
+              update: edu,
+              create: edu,
+            })),
+          },
+          experience: {
+            deleteMany: {
+              id: { notIn: mappedExperience.map((exp) => exp.id) },
+            },
+            upsert: mappedExperience.map((exp) => ({
+              where: { id: exp.id },
+              update: exp,
+              create: exp,
+            })),
+          },
+        },
+        include: {
+          education: true,
+          experience: true,
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              verified: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      return updatedProfile;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException('Profile not found');
+      }
+      throw err;
     }
-
-    await this.prisma.userProfile.update({
-      where: { id: profile.id },
-      data: {
-        ...onboardingData,
-        meta: onboardingData.meta as unknown as JsonValue,
-      },
-    });
-
-    return await this.getProfile(professionalId);
   }
 
   private async createUserProfile(
@@ -143,17 +187,21 @@ export class ProfessionalsService {
     return profile;
   }
 
-  private mapEducationData(education: ProfessionalEducationDto[]) {
+  private mapEducationData(
+    education: ProfessionalEducationDto[] | UpdateProfessionalEducationDto[],
+  ) {
     return education?.map((edu) => ({
       ...edu,
-      id: newId('professionalEducation'),
+      id: edu?.id ?? newId('professionalEducation'),
     }));
   }
 
-  private mapExperienceData(experience: any[]) {
+  private mapExperienceData(
+    experience: ProfessionalExperienceDto[] | UpdateProfessionalExperienceDto[],
+  ) {
     return experience?.map((exp) => ({
       ...exp,
-      id: newId('professionalExperience'),
+      id: exp.id ?? newId('professionalExperience'),
       meta: exp.meta as unknown as JsonValue,
     }));
   }
