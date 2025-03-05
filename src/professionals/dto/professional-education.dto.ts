@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   ValidateIf,
   IsDateString,
+  IsOptional,
 } from 'class-validator';
 
 export class ProfessionalEducationDto {
@@ -30,4 +31,11 @@ export class ProfessionalEducationDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+}
+
+export class UpdateProfessionalEducationDto extends ProfessionalEducationDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  id: string;
 }

@@ -11,8 +11,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ProfessionalExperienceDto } from './professional-experience.dto';
-import { ProfessionalEducationDto } from './professional-education.dto';
+import { UpdateProfessionalExperienceDto } from './professional-experience.dto';
+import { UpdateProfessionalEducationDto } from './professional-education.dto';
 
 class MetaDto {
   @IsPhoneNumber()
@@ -64,14 +64,14 @@ export class ProfessionalUpdateValidation {
   @IsArray()
   @IsObject({ each: true })
   @ValidateNested()
-  @Type(() => ProfessionalExperienceDto)
+  @Type(() => UpdateProfessionalExperienceDto)
   @IsOptional()
-  experience: ProfessionalExperienceDto[];
+  experience: UpdateProfessionalExperienceDto[];
 
   @IsArray()
   @IsObject({ each: true })
   @ValidateNested()
-  @Type(() => ProfessionalEducationDto)
+  @Type(() => UpdateProfessionalEducationDto)
   @IsOptional()
-  education: ProfessionalEducationDto[];
+  education: UpdateProfessionalEducationDto[];
 }
