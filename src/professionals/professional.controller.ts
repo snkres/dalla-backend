@@ -96,40 +96,19 @@ export class ProfessionalsController {
   }
 
   @Get('projects')
-  async getAllProjects(@Query() query: PaginationDto) {
-    try {
-      const projects = await this.professionalsService.getAllProjects(query);
-      return ResponseUtil.success(
-        projects,
-        'All projects retrieved successfully',
-      );
-    } catch (err) {
-      throw new CustomHttpException(
-        err?.message,
-        {
-          cause: err,
-          description: err,
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-  }
-
-  @Get('me/projects')
-  async getAssignedProjects(
+  async getProjects(
     @CurrentUser() professional: User,
-    @Query() query: PaginationDto,
+    @Query() query: PaginationDto & { assigned?: boolean },
   ) {
+    const { limit, page, assigned } = query;
     try {
-      const projects =
-        await this.professionalsService.findProjectsByProfessionalId(
-          professional.id,
-          query,
-        );
-      return ResponseUtil.success(
-        projects,
-        'Assigned projects retrieved successfully',
+      const projects = await this.professionalsService.getProjects(
+        professional.id,
+        { page, limit },
+        assigned ?? false,
       );
+
+      return ResponseUtil.success(projects, 'Projects retrieved successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -169,7 +148,7 @@ export class ProfessionalsController {
     }
   }
 
-  @Get('me/requests')
+  @Get('requests')
   async getProfessionalRequests(
     @CurrentUser() user: User,
     @Query() query: PaginationDto,

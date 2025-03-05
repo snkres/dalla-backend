@@ -6,6 +6,7 @@ import { ProjectStatus } from '@/prisma/postgres';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { FilterProjectsOptions } from '@/shared/types/professionals.types';
 
 @Injectable()
 export class ProjectService {
@@ -53,13 +54,17 @@ export class ProjectService {
     });
   }
 
-  async index(query: PaginationDto, status?: ProjectStatus) {
+  async index(query: PaginationDto, options?: FilterProjectsOptions) {
     const { page, limit } = query;
+    const { professionalId, status } = options;
 
     return this.postgresService
       .$extends(pagination())
       .project.paginate({
-        where: { status },
+        where: {
+          ...(status && { status }),
+          ...(professionalId && { professional: { id: professionalId } }),
+        },
         include: {
           company: true,
           professional: true,

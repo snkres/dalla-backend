@@ -12,6 +12,7 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { createProjectRequestValidation } from '@/projects/validation/create-request.validation';
 import { ProjectRequestsService } from '@/project-requests/project-requests.service';
 import { ProjectService } from '@/projects/projects.service';
+import { FilterProjectsOptions } from '@/shared/types/professionals.types';
 
 @Injectable()
 export class ProfessionalsService {
@@ -157,18 +158,13 @@ export class ProfessionalsService {
     }));
   }
 
-  async getAllProjects(query: PaginationDto) {
-    return this.projectService.index(query, 'Open');
-  }
-
-  async findProjectsByProfessionalId(
+  async getProjects(
     professionalId: string,
     query: PaginationDto,
+    assigned: boolean = false,
   ) {
-    return this.projectService.findProjectsByProfessionalId(
-      professionalId,
-      query,
-    );
+    const options: FilterProjectsOptions = assigned ? { professionalId } : {};
+    return this.projectService.index(query, options);
   }
 
   // Project requests methods
