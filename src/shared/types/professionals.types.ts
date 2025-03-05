@@ -18,5 +18,4 @@ export interface ProfessionalExperience {
 export interface FilterProjectsOptions {
   professionalId?: string;
   status?: ProjectStatus;
-  assigned?: boolean;
 }

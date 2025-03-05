@@ -87,7 +87,7 @@ export class ProfessionalsController {
     return ResponseUtil.success(updatedProfile, 'Profile updated successfully');
   }
 
-  @Get(':professionalId')
+  @Get('profile/:professionalId')
   async getProfessionalProfile(
     @Param('professionalId') professionalId: string,
   ) {

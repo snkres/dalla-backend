@@ -56,15 +56,11 @@ export class ProjectService {
 
   async index(query: PaginationDto, options?: FilterProjectsOptions) {
     const { page, limit } = query;
-    const { professionalId, status } = options;
 
     return this.postgresService
       .$extends(pagination())
       .project.paginate({
-        where: {
-          ...(status && { status }),
-          ...(professionalId && { professional: { id: professionalId } }),
-        },
+        where: { ...options, professional: { id: options?.professionalId } },
         include: {
           company: true,
           professional: true,
