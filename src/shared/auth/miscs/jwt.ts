@@ -27,7 +27,12 @@ export class JWTService {
       ...payload.extra,
     });
 
-    return { access_token, refresh_token, extra: payload.extra };
+    return {
+      access_token,
+      refresh_token,
+      userId: payload.userId,
+      extra: payload.extra,
+    };
   }
 
   async createRefreshToken(payload: {
