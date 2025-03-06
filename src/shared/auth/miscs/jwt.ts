@@ -1,5 +1,5 @@
 import { UserTypes } from '@/shared/enums/user-types.enum';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -23,6 +23,7 @@ export class JWTService {
       email: payload.email,
       userId: payload.userId,
       type: payload.type,
+      access_token: access_token,
       ...payload.extra,
     });
 
@@ -33,6 +34,7 @@ export class JWTService {
     email: string;
     userId: string;
     type: UserTypes;
+    access_token: string;
   }) {
     return await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_SECRET,
@@ -51,7 +53,18 @@ export class JWTService {
     });
   }
 
-  decodeRefreshToken(token: string) {
-    return this.jwtService.decode(token);
+  async decodeRefreshToken(token: string) {
+    return this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_SECRET,
+    });
+  }
+
+  async validateRefreshToken(refresh_token: string, access_token: string) {
+    const decoded = await this.decodeRefreshToken(refresh_token);
+    if (!decoded || decoded.access_token !== access_token) {
+      throw new UnauthorizedException('Invalid or revoked refresh token');
+    }
+
+    return decoded;
   }
 }
