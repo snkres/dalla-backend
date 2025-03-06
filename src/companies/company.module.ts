@@ -4,9 +4,10 @@ import { Module } from '@nestjs/common';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
 import { ProjectService } from '@/projects/projects.service';
+import { ProjectRequestsModule } from '@/project-requests/project-requests.module';
 
 @Module({
-  imports: [PlatformAuthModule],
+  imports: [PlatformAuthModule, ProjectRequestsModule],
   controllers: [CompanyController],
   providers: [CompanyService, ProjectService, PostgresPrismaService],
 })

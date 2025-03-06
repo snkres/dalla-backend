@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -21,6 +22,7 @@ import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { ChangeProjectRequestValidation } from './validation/change-project-request.validation';
+import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 
 @Controller()
 @UseGuards(CompanyAuthGuard)
@@ -96,6 +98,35 @@ export class CompanyController {
     }
   }
 
+  // Projects
+
+  @Post('projects')
+  async createProject(
+    @CurrentCompany() company: Company,
+    @Body() projectData: createProjectValidation,
+  ) {
+    try {
+      const project = await this.companyService.createProject(
+        company.id,
+        projectData,
+      );
+      return ResponseUtil.success(
+        project,
+        'Project created successfully',
+        HttpStatus.CREATED,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
   @Get('projects')
   async getProjects(
     @CurrentCompany() company: Company,
@@ -109,27 +140,77 @@ export class CompanyController {
       return ResponseUtil.success(projects, 'Company projects retrieved');
     } catch (err) {
       throw new CustomHttpException(
-        err.message,
-        err.errors,
-        HttpStatus.BAD_REQUEST,
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
 
-  @Post('projects')
-  async createProject(
+  @Get('projects/:projectId')
+  async getProject(
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+  ) {
+    try {
+      const project = await this.companyService.companyProject(projectId);
+      return ResponseUtil.success(project, 'Project retrieved successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Put('projects/:projectId')
+  async updateProject(
     @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
     @Body() projectData: createProjectValidation,
   ) {
     try {
-      const project = await this.companyService.createProject({
-        companyId: company.id,
-        ...projectData,
-      });
+      const updatedProject = await this.companyService.modifyProject(
+        company.id,
+        projectId,
+        projectData,
+      );
       return ResponseUtil.success(
-        project,
-        'Project created successfully',
-        HttpStatus.CREATED,
+        updatedProject,
+        'Project updated successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Delete('projects/:projectId')
+  async deleteProject(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+  ) {
+    try {
+      const updatedProject = await this.companyService.deleteProject(
+        company.id,
+        projectId,
+      );
+      return ResponseUtil.success(
+        updatedProject,
+        'Project deleted successfully',
+        HttpStatus.OK,
       );
     } catch (err) {
       throw new CustomHttpException(
@@ -140,15 +221,71 @@ export class CompanyController {
     }
   }
 
-  @Put('projects/:projectId/requests/:requestId')
-  async updateProjectRequest(
+  // Project requests
+
+  @Get('projects/:projectId/requests')
+  async getProjectRequests(
     @CurrentCompany() company: Company,
-    @Param('projectId') projectId: string,
-    @Param('requestId') requestId: string,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Query() query: PaginationDto,
+  ) {
+    try {
+      const requests = await this.companyService.projectRequests(
+        company.id,
+        projectId,
+        query,
+      );
+      return ResponseUtil.success(requests, 'Project requests retrieved');
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Get('projects/:projectId/requests/:requestId')
+  async getProjectRequest(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Param('requestId', new IdValidationPipe('projectRequest'))
+    requestId: string,
+  ) {
+    try {
+      const request = await this.companyService.projectRequest(
+        company.id,
+        projectId,
+        requestId,
+      );
+      return ResponseUtil.success(request, 'Project request retrieved');
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Patch('projects/:projectId/requests/:requestId')
+  async modifyRequestStatus(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Param('requestId', new IdValidationPipe('projectRequest'))
+    requestId: string,
     @Body() request: ChangeProjectRequestValidation,
   ) {
     try {
-      const updatedRequest = await this.companyService.changeProjectRequest(
+      const updatedRequest = await this.companyService.modifyRequestStatus(
+        company.id,
+        projectId,
         requestId,
         request.status,
       );
@@ -158,9 +295,12 @@ export class CompanyController {
       );
     } catch (err) {
       throw new CustomHttpException(
-        err.message,
-        err.errors,
-        HttpStatus.BAD_REQUEST,
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }

@@ -13,9 +13,9 @@ import { IS_PUBLIC_KEY } from '@/shared/decorators/isPublic.decorator';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 
 @Injectable()
-export class CompanyOrProfessionalAuthGuard implements CanActivate {
+export class UnifiedGuard implements CanActivate {
   private readonly logger = new PinoLogger({
-    renameContext: CompanyOrProfessionalAuthGuard.name,
+    renameContext: UnifiedGuard.name,
   });
 
   constructor(
