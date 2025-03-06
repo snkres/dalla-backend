@@ -1,6 +1,5 @@
 import { Controller, Post, Body, HttpStatus, HttpCode } from '@nestjs/common';
 import { PlatformAuthService } from './auth.service';
-import { Response } from 'express';
 import { Public } from '@/shared/decorators/isPublic.decorator';
 import { LoginDto } from './dto/login.dto';
 import { VerifyDto } from './dto/verify.dto';
