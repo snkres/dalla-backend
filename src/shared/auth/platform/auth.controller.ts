@@ -1,5 +1,13 @@
-import { Controller, Post, Body, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  HttpCode,
+  Res,
+} from '@nestjs/common';
 import { PlatformAuthService } from './auth.service';
+import { Response } from 'express';
 import { Public } from '@/shared/decorators/isPublic.decorator';
 import { LoginDto } from './dto/login.dto';
 import { VerifyDto } from './dto/verify.dto';
@@ -7,7 +15,7 @@ import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { RegisterValidation } from './dto/register.validation';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
+import setResponseCookies from './utils/set-response-cookies';
 @Controller('auth')
 export class PlatformAuthController {
   constructor(private readonly authService: PlatformAuthService) {}
@@ -15,7 +23,7 @@ export class PlatformAuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async companyLogin(@Body() loginDto: LoginDto) {
+  async companyLogin(@Body() loginDto: LoginDto, @Res() res: Response) {
     try {
       const payload = await this.authService.validateLogin(
         loginDto.email,
@@ -23,7 +31,8 @@ export class PlatformAuthController {
         loginDto.userType,
       );
 
-      return ResponseUtil.success(payload, 'Tokens');
+      setResponseCookies(res, payload);
+      return ResponseUtil.success('Logged in successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -58,32 +67,12 @@ export class PlatformAuthController {
     }
   }
 
-  @Post('refresh-token')
-  @Public()
-  async refresh_token(@Body() refreshBody: RefreshTokenDto) {
-    const { refresh_token, access_token } = refreshBody;
-    try {
-      const payload = await this.authService.refreshToken(
-        refresh_token,
-        access_token,
-      );
-
-      return ResponseUtil.success(payload, 'Tokens refreshed successfully');
-    } catch (err) {
-      throw new CustomHttpException(
-        err?.message,
-        {
-          cause: err,
-          description: err,
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-  }
-
   @Post('verify')
   @Public()
-  async companyRegisterVerify(@Body() verifyOtp: VerifyDto) {
+  async companyRegisterVerify(
+    @Body() verifyOtp: VerifyDto,
+    @Res() res: Response,
+  ) {
     try {
       const payload = await this.authService.verify(
         verifyOtp.email,
@@ -91,7 +80,8 @@ export class PlatformAuthController {
         verifyOtp.userType,
       );
 
-      return ResponseUtil.success(payload, 'Otp verified successfully');
+      setResponseCookies(res, payload);
+      return ResponseUtil.success('Otp verified successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,

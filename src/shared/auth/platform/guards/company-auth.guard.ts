@@ -4,12 +4,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Reflector } from '@nestjs/core';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { PinoLogger } from 'nestjs-pino';
 import { IS_PUBLIC_KEY } from '@/shared/decorators/isPublic.decorator';
+import { JWTService } from '../../miscs/jwt';
+import setResponseCookies from '../utils/set-response-cookies';
 
 @Injectable()
 export class CompanyAuthGuard implements CanActivate {
@@ -18,7 +19,7 @@ export class CompanyAuthGuard implements CanActivate {
   });
 
   constructor(
-    private jwtService: JwtService,
+    private jwtService: JWTService,
     private reflector: Reflector,
     private prisma: PostgresPrismaService,
   ) {}
@@ -33,46 +34,95 @@ export class CompanyAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
-    // const refreshToken = request.cookies['refreshToken'];
-
-    // if (!token && !refreshToken) {
-    //   throw new UnauthorizedException('No token provided');
-    // }
+    const response = context.switchToHttp().getResponse<Response>();
+    const { accessToken, refreshToken } = this.extractTokensFromHeader(request);
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
-      });
-
+      const payload = await this.jwtService.decodeAccessToken(accessToken);
       const company = await this.prisma.company.findUnique({
         where: {
           id: payload.userId,
         },
       });
+
       if (company) {
         request['company'] = company;
         return true;
+      } else {
+        this.logger.error('Company not found');
+        throw new UnauthorizedException('Company not found');
       }
     } catch (error) {
+      return this.handleTokenErrors(
+        error,
+        refreshToken,
+        accessToken,
+        request,
+        response,
+      );
+    }
+  }
+
+  private async handleTokenErrors(
+    error: any,
+    refreshToken: string,
+    accessToken: string,
+    request: Request,
+    response: Response,
+  ): Promise<boolean> {
+    if (refreshToken) {
+      try {
+        const refreshPayload =
+          await this.jwtService.validateAndDecodeRefreshToken(
+            refreshToken,
+            accessToken,
+          );
+
+        const newTokens = await this.jwtService.createTokens({
+          email: refreshPayload.email,
+          userId: refreshPayload.userId,
+          type: refreshPayload.type,
+        });
+
+        setResponseCookies(response, newTokens);
+
+        const company = await this.prisma.company.findUnique({
+          where: {
+            id: refreshPayload.userId,
+          },
+        });
+
+        if (company) {
+          request['company'] = company;
+          return true;
+        } else {
+          this.logger.error('Company not found after refreshing token');
+          throw new UnauthorizedException('Company not found');
+        }
+      } catch (refreshError) {
+        this.logger.error(`Failed to refresh token: ${refreshError.message}`);
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+    } else {
       this.logger.error(`Failed to authenticate: ${error.message}`);
       throw new UnauthorizedException('Invalid token');
     }
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return undefined;
+  private extractTokensFromHeader(request: Request): {
+    accessToken: string;
+    refreshToken: string;
+  } {
+    const accessToken = request.cookies.access_token as string;
+    const refreshToken = request.cookies.refresh_token as string;
+    if (!accessToken || !refreshToken) {
+      this.logger.error('Access token or refresh token is missing');
+      throw new UnauthorizedException('Invalid token');
     }
-    return authHeader.split(' ')[1];
-  }
 
-  private async useRefreshToken(request: Request) {
-    const oldRefreshToken = request.cookies['refreshToken'];
-    const payload = await this.jwtService.verifyAsync(oldRefreshToken, {
-      secret: process.env.JWT_SECRET,
-    });
-    return payload;
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }

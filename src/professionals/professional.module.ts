@@ -6,6 +6,7 @@ import { ProfessionalsService } from './professional.service';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ObjectStorageService } from '@/shared/upload/object-storage.service';
 import { ConfigModule } from '@nestjs/config';
+import { JWTService } from '@/shared/auth/miscs/jwt';
 
 @Module({
   imports: [PlatformAuthModule, ConfigModule],
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
     ProfessionalsService,
     UploadService,
     ObjectStorageService,
+    JWTService,
   ],
   controllers: [ProfessionalsController],
 })

@@ -65,19 +65,6 @@ export class PlatformAuthService {
     return await this.professionalVerify(email, otp);
   }
 
-  async refreshToken(refresh_token: string, access_token: string) {
-    const decoded = await this.jwtService.validateRefreshToken(
-      refresh_token,
-      access_token,
-    );
-
-    return await this.jwtService.createTokens({
-      email: decoded.email,
-      userId: decoded.userId,
-      type: decoded.type,
-    });
-  }
-
   async companyRegister(registerDto: CompanyRegisterDto) {
     const { password, ...rest } = registerDto;
     const existingUser = await this.prisma.company.findFirst({
