@@ -12,6 +12,10 @@ import { JsonValue } from '@prisma/client/runtime/library';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { createProjectRequestValidation } from '@/projects/validation/create-request.validation';
+import { ProjectRequestsService } from '@/project-requests/project-requests.service';
+import { ProjectService } from '@/projects/projects.service';
+import { FilterProjectsOptions } from '@/shared/types/professionals.types';
 import {
   ProfessionalExperienceDto,
   UpdateProfessionalExperienceDto,
@@ -22,6 +26,8 @@ export class ProfessionalsService {
   constructor(
     private readonly prisma: PostgresPrismaService,
     private readonly uploadService: UploadService,
+    private readonly projectService: ProjectService,
+    private readonly projectRequestsService: ProjectRequestsService,
   ) {}
 
   async listProfessionals(query: PaginationDto) {
@@ -198,5 +204,77 @@ export class ProfessionalsService {
       id: exp.id ?? newId('professionalExperience'),
       meta: exp.meta as unknown as JsonValue,
     }));
+  }
+
+  async getProjects(
+    professionalId: string,
+    query: PaginationDto,
+    assigned: boolean = false,
+  ) {
+    const options: FilterProjectsOptions = assigned ? { professionalId } : {};
+    return this.projectService.index(query, options);
+  }
+
+  // Project requests methods
+
+  async createProjectRequest(
+    professionalId: string,
+    projectId: string,
+    request: createProjectRequestValidation,
+  ) {
+    return this.projectRequestsService.createRequest(
+      professionalId,
+      projectId,
+      request,
+    );
+  }
+
+  async getRequests(professionalId: string, query: PaginationDto) {
+    return this.projectRequestsService.findRequestByProfessionalId(
+      professionalId,
+      query,
+    );
+  }
+
+  async getRequestById(
+    professionalId: string,
+    projectId: string,
+    requestId: string,
+  ) {
+    const request = await this.projectRequestsService.findRequestById(
+      projectId,
+      requestId,
+    );
+    if (request.professionalId !== professionalId) {
+      throw new NotFoundException('Request not found');
+    }
+
+    return request;
+  }
+
+  async modifyRequest(
+    professionalId: string,
+    projectId: string,
+    requestId: string,
+    data: createProjectRequestValidation,
+  ) {
+    return this.projectRequestsService.modifyRequest(
+      professionalId,
+      projectId,
+      requestId,
+      data,
+    );
+  }
+
+  async deleteRequest(
+    professionalId: string,
+    projectId: string,
+    requestId: string,
+  ) {
+    return this.projectRequestsService.deleteRequest(
+      professionalId,
+      projectId,
+      requestId,
+    );
   }
 }

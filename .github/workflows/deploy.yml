@@ -21,10 +21,9 @@ jobs:
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
             cd /root/dalla-backend
-            git reset --hard HEAD
+            git fetch --all
+            git reset --hard origin/dev
             git clean -f -d
-            git config pull.rebase false  # Configure git to use merge
-            git pull origin dev || { echo "Git pull failed"; exit 1; }
             pnpm install
             pnpm migrate:postgres
             pnpm build
@@ -44,14 +43,13 @@ jobs:
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
             cd /root/dalla-backend
-            git reset --hard HEAD
+            git fetch --all
+            git reset --hard origin/dev
             git clean -f -d
-            git config pull.rebase false  # Configure git to use merge
-            git pull origin dev || { echo "Git pull failed"; exit 1; }
-            yarn install
-            yarn db:migrate
-            yarn build
-            pm2 restart ecosystem.config.cjs
+            pnpm install
+            pnpm migrate:postgres
+            pnpm build
+            pm2 restart ecosystem.config.js
             echo "Waiting for 10sec for logs to be ready..."
             sleep 5
             pm2 logs --nostream --lines 100

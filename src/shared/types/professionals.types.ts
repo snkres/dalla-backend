@@ -1,3 +1,5 @@
+import { ProjectStatus } from '@/prisma/postgres';
+
 export interface ProfessionalProfileMeta {
   phone: string;
   location: string;
@@ -11,4 +13,9 @@ export interface ProfessionalExperience {
   achievements: string;
   responsibilities: string;
   typeOfEmployment: string;
+}
+
+export interface FilterProjectsOptions {
+  professionalId?: string;
+  status?: ProjectStatus;
 }

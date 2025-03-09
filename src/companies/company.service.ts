@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { newId } from '@/shared/utils/unique-id';
 import { OnboardingValidation } from './validation/onboarding.validation';
@@ -7,12 +7,15 @@ import { ProjectService } from '@/projects/projects.service';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { RequestStatus } from '@/prisma/postgres';
+import { ProjectStatus } from '@/shared/types/project.types';
+import { ProjectRequestsService } from '@/project-requests/project-requests.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     private readonly prisma: PostgresPrismaService,
     private readonly projectService: ProjectService,
+    private readonly projectRequestsService: ProjectRequestsService,
   ) {}
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {
@@ -92,8 +95,15 @@ export class CompanyService {
     return updatedCompanyProfile;
   }
 
-  async createProject(data: createProjectValidation) {
-    const project = await this.projectService.createProject(data);
+  // Project methods
+
+  async createProject(companyId: string, data: createProjectValidation) {
+    const project = await this.projectService.createProject(companyId, data);
+    return project;
+  }
+
+  async companyProject(projectId: string) {
+    const project = await this.projectService.findProjectById(projectId);
     return project;
   }
 
@@ -105,8 +115,80 @@ export class CompanyService {
     return requests;
   }
 
-  async changeProjectRequest(requestId: string, status: RequestStatus) {
-    const project = await this.projectService.modifyRequestStatus(
+  async modifyProject(
+    companyId: string,
+    projectId: string,
+    data: createProjectValidation,
+  ) {
+    const project = await this.projectService.modifyProject(
+      companyId,
+      projectId,
+      data,
+    );
+    return project;
+  }
+
+  async modifyProjectStatus(
+    companyId: string,
+    projectId: string,
+    status: ProjectStatus,
+  ) {
+    const project = await this.projectService.changeProjectStatus(
+      companyId,
+      projectId,
+      status,
+    );
+    return project;
+  }
+
+  async deleteProject(companyId: string, projectId: string) {
+    const project = await this.projectService.deleteProject(
+      companyId,
+      projectId,
+    );
+    return project;
+  }
+
+  // Project requests methods
+
+  async projectRequests(
+    companyId: string,
+    projectId: string,
+    query: PaginationDto,
+  ) {
+    const requests = await this.projectRequestsService.findRequestByProjectId(
+      companyId,
+      projectId,
+      query,
+    );
+    return requests;
+  }
+
+  async projectRequest(
+    companyId: string,
+    projectId: string,
+    requestId: string,
+  ) {
+    const request = await this.projectRequestsService.findRequestById(
+      projectId,
+      requestId,
+    );
+    if (request.project.companyId !== companyId) {
+      throw new NotFoundException('Request not found');
+    }
+
+    return request;
+  }
+
+  async modifyRequestStatus(
+    companyId: string,
+    projectsId: string,
+    requestId: string,
+    status: RequestStatus,
+  ) {
+    const project = await this.projectRequestsService.modifyRequestStatus(
+      companyId,
+      projectsId,
       requestId,
       status,
     );

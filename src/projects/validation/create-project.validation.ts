@@ -33,11 +33,6 @@ export class createProjectValidation {
   @IsNotEmpty()
   skills: string[];
 
-  @IsString()
-  @IsNotEmpty()
-  // @IsExist('Company', 'id') // The companyId validation was moved to the service due to weird dependency issues
-  companyId: string;
-
   @IsObject()
   @IsNotEmpty()
   meta: ProjectMeta;

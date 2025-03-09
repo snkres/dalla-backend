@@ -7,6 +7,8 @@ import { UploadService } from '@/shared/upload/upload.service';
 import { ObjectStorageService } from '@/shared/upload/object-storage.service';
 import { ConfigModule } from '@nestjs/config';
 import { JWTService } from '@/shared/auth/miscs/jwt';
+import { ProjectService } from '@/projects/projects.service';
+import { ProjectRequestsService } from '@/project-requests/project-requests.service';
 
 @Module({
   imports: [PlatformAuthModule, ConfigModule],
@@ -16,6 +18,8 @@ import { JWTService } from '@/shared/auth/miscs/jwt';
     UploadService,
     ObjectStorageService,
     JWTService,
+    ProjectService,
+    ProjectRequestsService,
   ],
   controllers: [ProfessionalsController],
 })
