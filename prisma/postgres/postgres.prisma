@@ -53,9 +53,9 @@ model CompanyProfile {
   id          String      @id
   companyId   String
   location    String?
-  areas       String[]
-  goals       String[]
-  targetIndustries String[]
+  areas       Json[]
+  goals       Json[]
+  targetIndustries Json[]
   website     String?
   meta        Json? // will include phone, social media links, company size, company type, company logo
   headline    String?

@@ -20,6 +20,8 @@ export class CompanyService {
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {
     const id = newId('companyProfile');
+    const { areas, goals, targetIndustries, meta, ...rest } = onboardingData;
+
     await this.prisma.companyProfile.create({
       data: {
         id,
@@ -28,8 +30,11 @@ export class CompanyService {
             id: companyId,
           },
         },
-        ...onboardingData,
-        meta: onboardingData.meta as unknown as InputJsonValue,
+        ...rest,
+        areas: areas as unknown as InputJsonValue[],
+        goals: goals as unknown as InputJsonValue[],
+        targetIndustries: targetIndustries as unknown as InputJsonValue[],
+        meta: meta as unknown as InputJsonValue,
       },
       include: {
         Company: true,
@@ -84,11 +89,15 @@ export class CompanyService {
     companyId: string,
     updateData: OnboardingValidation,
   ) {
+    const { areas, goals, targetIndustries, meta, ...rest } = updateData;
     const updatedCompanyProfile = await this.prisma.companyProfile.update({
       where: { companyId },
       data: {
-        ...updateData,
-        meta: updateData.meta as unknown as InputJsonValue,
+        ...rest,
+        areas: areas as unknown as InputJsonValue[],
+        goals: goals as unknown as InputJsonValue[],
+        targetIndustries: targetIndustries as unknown as InputJsonValue[],
+        meta: meta as unknown as InputJsonValue,
       },
     });
 
