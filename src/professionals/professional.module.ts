@@ -6,6 +6,7 @@ import { ProfessionalsService } from './professional.service';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ObjectStorageService } from '@/shared/upload/object-storage.service';
 import { ConfigModule } from '@nestjs/config';
+import { JWTService } from '@/shared/auth/miscs/jwt';
 import { ProjectService } from '@/projects/projects.service';
 import { ProjectRequestsService } from '@/project-requests/project-requests.service';
 
@@ -16,6 +17,7 @@ import { ProjectRequestsService } from '@/project-requests/project-requests.serv
     ProfessionalsService,
     UploadService,
     ObjectStorageService,
+    JWTService,
     ProjectService,
     ProjectRequestsService,
   ],

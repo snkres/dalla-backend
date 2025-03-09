@@ -2,9 +2,9 @@ import {
   Controller,
   Post,
   Body,
-  Res,
   HttpStatus,
   HttpCode,
+  Res,
 } from '@nestjs/common';
 import { PlatformAuthService } from './auth.service';
 import { Response } from 'express';
@@ -15,6 +15,7 @@ import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { RegisterValidation } from './dto/register.validation';
+import setResponseCookies from './utils/set-response-cookies';
 @Controller('auth')
 export class PlatformAuthController {
   constructor(private readonly authService: PlatformAuthService) {}
@@ -30,25 +31,8 @@ export class PlatformAuthController {
         loginDto.userType,
       );
 
-      if (payload.access_token) {
-        res.cookie('refreshToken', payload.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV !== 'development',
-          domain:
-            process.env.NODE_ENV !== 'development'
-              ? process.env.domain
-              : 'localhost',
-        });
-        return ResponseUtil.success(
-          { access_token: payload.access_token },
-          'Tokens',
-        );
-      }
-      return ResponseUtil.error(
-        "Couldn't find the user",
-        'something went wrong',
-        HttpStatus.NOT_FOUND,
-      );
+      setResponseCookies(res, payload);
+      return ResponseUtil.success('Logged in successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -85,18 +69,19 @@ export class PlatformAuthController {
 
   @Post('verify')
   @Public()
-  async companyRegisterVerify(@Body() verifyOtp: VerifyDto) {
+  async companyRegisterVerify(
+    @Body() verifyOtp: VerifyDto,
+    @Res() res: Response,
+  ) {
     try {
-      const result = await this.authService.verify(
+      const payload = await this.authService.verify(
         verifyOtp.email,
         verifyOtp.otp,
         verifyOtp.userType,
       );
-      return ResponseUtil.success(
-        result,
-        'Company verified successfully',
-        HttpStatus.OK,
-      );
+
+      setResponseCookies(res, payload);
+      return ResponseUtil.success('Otp verified successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
