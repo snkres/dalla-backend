@@ -97,7 +97,7 @@ export class CompanyService {
         areas: areas as unknown as InputJsonValue[],
         goals: goals as unknown as InputJsonValue[],
         targetIndustries: targetIndustries as unknown as InputJsonValue[],
-        meta: updateData.meta as unknown as InputJsonValue,
+        meta: meta as unknown as InputJsonValue,
       },
     });
 
