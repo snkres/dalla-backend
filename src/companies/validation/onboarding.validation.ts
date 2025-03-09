@@ -1,4 +1,5 @@
 import { CompanyProfileMeta } from '@/shared/types/company.types';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsObject,
@@ -13,19 +14,22 @@ export class OnboardingValidation {
   location: string;
 
   @IsArray()
-  @IsString({ each: true })
+  @IsObject({ each: true })
+  @Type(() => ListObject)
   @IsOptional()
-  areas: string[];
+  areas: ListObject[];
 
   @IsArray()
-  @IsString({ each: true })
+  @IsObject({ each: true })
+  @Type(() => ListObject)
   @IsOptional()
-  goals: string[];
+  goals: ListObject[];
 
   @IsArray()
-  @IsString({ each: true })
+  @IsObject({ each: true })
+  @Type(() => ListObject)
   @IsOptional()
-  targetIndustries: string[];
+  targetIndustries: ListObject[];
 
   @IsUrl()
   @IsOptional()
@@ -46,4 +50,12 @@ export class OnboardingValidation {
   @IsObject()
   @IsOptional()
   meta: CompanyProfileMeta;
+}
+
+export class ListObject {
+  @IsString()
+  name: string;
+
+  @IsString()
+  description: string;
 }

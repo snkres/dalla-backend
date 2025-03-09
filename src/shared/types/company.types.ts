@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsNotEmpty, IsObject, IsPhoneNumber, IsString } from 'class-validator';
 
 export class CompanyProfileMeta {
@@ -15,5 +16,6 @@ export class CompanyProfileMeta {
 
   @IsObject()
   @IsNotEmpty()
+  @Type(() => Map)
   socialLinks: Map<string, string>;
 }
