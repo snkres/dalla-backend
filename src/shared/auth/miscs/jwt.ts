@@ -27,12 +27,7 @@ export class JWTService {
       ...payload.extra,
     });
 
-    return {
-      access_token,
-      refresh_token,
-      userId: payload.userId,
-      extra: payload.extra,
-    };
+    return { access_token, refresh_token, extra: payload.extra };
   }
 
   async createRefreshToken(payload: {
@@ -54,7 +49,13 @@ export class JWTService {
   }) {
     return this.jwtService.signAsync(payload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: '1d',
+      expiresIn: '10s',
+    });
+  }
+
+  async decodeAccessToken(token: string) {
+    return this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_SECRET,
     });
   }
 
@@ -64,7 +65,10 @@ export class JWTService {
     });
   }
 
-  async validateRefreshToken(refresh_token: string, access_token: string) {
+  async validateAndDecodeRefreshToken(
+    refresh_token: string,
+    access_token: string,
+  ) {
     const decoded = await this.decodeRefreshToken(refresh_token);
     if (!decoded || decoded.access_token !== access_token) {
       throw new UnauthorizedException('Invalid or revoked refresh token');
