@@ -20,6 +20,7 @@ import {
   ProfessionalExperienceDto,
   UpdateProfessionalExperienceDto,
 } from './dto/professional-experience.dto';
+import { ProfessionalProjectDto } from './dto/professional-project.dto';
 
 @Injectable()
 export class ProfessionalsService {
@@ -85,6 +86,7 @@ export class ProfessionalsService {
         },
         education: true,
         experience: true,
+        projects: true,
       },
     });
   }
@@ -94,7 +96,7 @@ export class ProfessionalsService {
       where: { id: userId },
       include: {
         UserProfile: {
-          include: { education: true, experience: true },
+          include: { education: true, experience: true, projects: true },
         },
       },
     });
@@ -204,6 +206,40 @@ export class ProfessionalsService {
       id: exp.id ?? newId('professionalExperience'),
       meta: exp.meta as unknown as JsonValue,
     }));
+  }
+
+  async createProfessionalProject(
+    professionalId: string,
+    data: ProfessionalProjectDto,
+  ) {
+    const id = newId('professionalProject');
+    return this.prisma.userProject.create({
+      data: {
+        ...data,
+        id,
+        UserProfile: { connect: { userId: professionalId } },
+      },
+    });
+  }
+
+  async updateProfessionalProject(
+    professionalId: string,
+    professionalProjectId: string,
+    data: ProfessionalProjectDto,
+  ) {
+    return this.prisma.userProject.update({
+      where: {
+        id: professionalProjectId,
+        UserProfile: { userId: professionalId },
+      },
+      data,
+    });
+  }
+
+  async deleteProfessionalProject(professionalId: string, projectId: string) {
+    return this.prisma.userProject.delete({
+      where: { id: projectId, UserProfile: { userId: professionalId } },
+    });
   }
 
   async getProjects(
