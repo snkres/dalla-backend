@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpStatus,
   Param,
@@ -26,6 +27,7 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 import { FetchProjectsOptionsDto } from '@/projects/dto/fetch-projects-options.dto';
+import { ProfessionalProjectDto } from './dto/professional-project.dto';
 
 @Controller()
 @UseGuards(ProfessionalAuthGuard)
@@ -105,6 +107,91 @@ export class ProfessionalsController {
   ) {
     const profile = await this.professionalsService.getProfile(professionalId);
     return ResponseUtil.success(profile, 'Professional profile retrieved');
+  }
+
+  @Post('profile/:professionalId/projects')
+  async addProjectToProfile(
+    @CurrentUser() professional: User,
+    @Param('professionalId') professionalId: string,
+    @Body() data: ProfessionalProjectDto,
+  ) {
+    if (professional.id !== professionalId) {
+      throw new ForbiddenException(
+        'You can only add projects to your own profile',
+      );
+    }
+
+    try {
+      const project = await this.professionalsService.createProfessionalProject(
+        professional.id,
+        data,
+      );
+      return ResponseUtil.success(project, 'Project added to profile');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Put('profile/:professionalId/projects/:professionalProjectId')
+  async updateProfessionalProject(
+    @CurrentUser() professional: User,
+    @Param('professionalProjectId', new IdValidationPipe('professionalProject'))
+    professionalProjectId: string,
+    @Param('professionalId') professionalId: string,
+    @Body() data: ProfessionalProjectDto,
+  ) {
+    if (professional.id !== professionalId) {
+      throw new ForbiddenException(
+        'You can only add projects to your own profile',
+      );
+    }
+
+    try {
+      const project = await this.professionalsService.updateProfessionalProject(
+        professional.id,
+        professionalProjectId,
+        data,
+      );
+      return ResponseUtil.success(project, 'Project updated successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete('profile/:professionalId/projects/:professionalProjectId')
+  async deleteProfessionalProject(
+    @CurrentUser() professional: User,
+    @Param('professionalProjectId', new IdValidationPipe('professionalProject'))
+    professionalProjectId: string,
+    @Param('professionalId') professionalId: string,
+  ) {
+    if (professional.id !== professionalId) {
+      throw new ForbiddenException(
+        'You can only add projects to your own profile',
+      );
+    }
+
+    try {
+      const project = await this.professionalsService.deleteProfessionalProject(
+        professional.id,
+        professionalProjectId,
+      );
+      return ResponseUtil.success(project, 'Project deleted successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Get('projects')

@@ -21,6 +21,7 @@ export const prefixes = {
   projectRequest: 'pr',
   professionalEducation: 'pe',
   professionalExperience: 'px',
+  professionalProject: 'ppr',
 } as const;
 
 export function newId(
