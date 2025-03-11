@@ -1,0 +1,149 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  mixin,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Request, Response } from 'express';
+import { Reflector } from '@nestjs/core';
+import { PostgresPrismaService } from '@/config/prisma/postgres.services';
+import { PinoLogger } from 'nestjs-pino';
+import { IS_PUBLIC_KEY } from '@/shared/decorators/isPublic.decorator';
+import { UserTypes } from '@/shared/enums/user-types.enum';
+import setResponseCookies from '../utils/set-response-cookies';
+import { JWTService } from '../../miscs/jwt';
+
+/**
+ * If type is not provided, both user and company will be accepted
+ */
+export function AuthGuard(type?: UserTypes) {
+  @Injectable()
+  class AuthGuardMixin implements CanActivate {
+    public readonly logger = new PinoLogger({
+      renameContext: AuthGuard.name,
+    });
+
+    constructor(
+      public jwtService: JWTService,
+      public reflector: Reflector,
+      public prisma: PostgresPrismaService,
+    ) {}
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+      const isPublic = this.reflector.getAllAndOverride<boolean>(
+        IS_PUBLIC_KEY,
+        [context.getHandler(), context.getClass()],
+      );
+      if (isPublic) {
+        return true;
+      }
+
+      const request = context.switchToHttp().getRequest<Request>();
+      const response = context.switchToHttp().getResponse<Response>();
+      const { accessToken, refreshToken } =
+        this.extractTokensFromHeader(request);
+
+      let payload;
+      try {
+        payload = await this.jwtService.decodeAccessToken(accessToken);
+        type ??= this.determineType(payload.userId);
+      } catch (error) {
+        return this.handleTokenErrors(
+          error,
+          refreshToken,
+          accessToken,
+          request,
+          response,
+        );
+      }
+
+      const record = await this.prisma[type as string].findUnique({
+        where: {
+          id: payload.userId,
+        },
+      });
+
+      if (record) {
+        request[type] = record;
+        return true;
+      } else {
+        this.logger.error('Record not found');
+        throw new UnauthorizedException('Invalid Token');
+      }
+    }
+
+    async handleTokenErrors(
+      error: any,
+      refreshToken: string,
+      accessToken: string,
+      request: Request,
+      response: Response,
+    ): Promise<boolean> {
+      if (refreshToken) {
+        try {
+          const refreshPayload =
+            await this.jwtService.validateAndDecodeRefreshToken(
+              refreshToken,
+              accessToken,
+            );
+
+          const newTokens = await this.jwtService.createTokens({
+            email: refreshPayload.email,
+            userId: refreshPayload.userId,
+            type: refreshPayload.type,
+          });
+
+          setResponseCookies(response, newTokens);
+
+          const user = await this.prisma.user.findUnique({
+            where: {
+              id: refreshPayload.userId,
+            },
+          });
+
+          if (user) {
+            request['user'] = user;
+            return true;
+          } else {
+            this.logger.error('User not found after refreshing token');
+            throw new UnauthorizedException('User not found');
+          }
+        } catch (refreshError) {
+          this.logger.error(`Failed to refresh token: ${refreshError.message}`);
+          throw new UnauthorizedException('Invalid refresh token');
+        }
+      } else {
+        this.logger.error(`Failed to authenticate: ${error.message}`);
+        throw new UnauthorizedException('Invalid token');
+      }
+    }
+
+    extractTokensFromHeader(request: Request): {
+      accessToken: string;
+      refreshToken: string;
+    } {
+      const accessToken = request.cookies.access_token as string;
+      const refreshToken = request.cookies.refresh_token as string;
+      if (!accessToken || !refreshToken) {
+        this.logger.error('Access token or refresh token is missing');
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    }
+
+    determineType(id: string) {
+      console.log(id);
+      if (id.startsWith('ck')) return UserTypes.Company;
+      if (id.startsWith('pk')) return UserTypes.User;
+
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  return mixin(AuthGuardMixin);
+}

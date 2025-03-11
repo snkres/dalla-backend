@@ -17,7 +17,6 @@ import {
 import { ProfessionalsService } from './professional.service';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ProfessionalAuthGuard } from '@/shared/auth/platform/guards/professionals-auth.guard';
 import { CurrentUser } from '@/shared/decorators/current-auth.decorator';
 import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { User } from '@/prisma/postgres';
@@ -28,9 +27,11 @@ import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 import { FetchProjectsOptionsDto } from '@/projects/dto/fetch-projects-options.dto';
 import { ProfessionalProjectDto } from './dto/professional-project.dto';
+import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
+import { UserTypes } from '@/shared/enums/user-types.enum';
 
 @Controller()
-@UseGuards(ProfessionalAuthGuard)
+@UseGuards(AuthGuard(UserTypes.User))
 export class ProfessionalsController {
   constructor(private readonly professionalsService: ProfessionalsService) {}
 

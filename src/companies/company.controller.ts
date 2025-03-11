@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { CompanyAuthGuard } from '@/shared/auth/platform/guards/company-auth.guard';
 import { CurrentCompany } from '@/shared/decorators/current-auth.decorator';
 import { OnboardingValidation } from './validation/onboarding.validation';
 import { Company } from '@/prisma/postgres';
@@ -23,9 +22,11 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { ChangeProjectRequestValidation } from './validation/change-project-request.validation';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
+import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
+import { UserTypes } from '@/shared/enums/user-types.enum';
 
 @Controller()
-@UseGuards(CompanyAuthGuard)
+@UseGuards(AuthGuard(UserTypes.Company))
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
