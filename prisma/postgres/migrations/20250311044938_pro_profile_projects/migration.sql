@@ -6,9 +6,8 @@ CREATE TABLE "UserProject" (
     "role" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "skills" TEXT[],
-    "linkInPlatform" TEXT,
-    "thumbnail" TEXT,
-    "link" TEXT,
+    "thumbnail" TEXT NOT NULL,
+    "link" TEXT NOT NULL,
     "media" TEXT[],
 
     CONSTRAINT "UserProject_pkey" PRIMARY KEY ("id")

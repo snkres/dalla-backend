@@ -119,16 +119,15 @@ model UserEducation {
 }
 
 model UserProject {
-  id             String   @id
-  profileId      String
-  title          String
-  role           String
-  description    String
-  skills         String[]
-  linkInPlatform String?
-  thumbnail      String
-  link           String
-  media          String[]
+  id          String   @id
+  profileId   String
+  title       String
+  role        String
+  description String
+  skills      String[]
+  thumbnail   String
+  link        String
+  media       String[]
 
   UserProfile UserProfile @relation(fields: [profileId], references: [id])
 }

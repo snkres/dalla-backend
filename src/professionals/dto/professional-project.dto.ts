@@ -24,8 +24,7 @@ export class ProfessionalProjectDto {
   skills: string[];
 
   @IsUrl()
-  @IsOptional()
-  linkInPlatform?: string;
+  thumbnail: string;
 
   @IsUrl()
   link: string;
