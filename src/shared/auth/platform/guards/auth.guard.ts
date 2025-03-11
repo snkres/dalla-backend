@@ -42,7 +42,7 @@ export function AuthGuard(type?: UserTypes) {
       const request = context.switchToHttp().getRequest<Request>();
       const response = context.switchToHttp().getResponse<Response>();
       const { accessToken, refreshToken } =
-        this.extractTokensFromHeader(request);
+        this.extractTokensFromCookies(request);
 
       let payload;
       try {
@@ -69,7 +69,7 @@ export function AuthGuard(type?: UserTypes) {
         return true;
       } else {
         this.logger.error('Record not found');
-        throw new UnauthorizedException('Invalid Token');
+        throw new UnauthorizedException('Invalid token');
       }
     }
 
@@ -88,6 +88,7 @@ export function AuthGuard(type?: UserTypes) {
               accessToken,
             );
 
+          type ??= this.determineType(refreshPayload.userId);
           const newTokens = await this.jwtService.createTokens({
             email: refreshPayload.email,
             userId: refreshPayload.userId,
@@ -96,18 +97,18 @@ export function AuthGuard(type?: UserTypes) {
 
           setResponseCookies(response, newTokens);
 
-          const user = await this.prisma.user.findUnique({
+          const record = await this.prisma[type as string].findUnique({
             where: {
               id: refreshPayload.userId,
             },
           });
 
-          if (user) {
-            request['user'] = user;
+          if (record) {
+            request[type] = record;
             return true;
           } else {
             this.logger.error('User not found after refreshing token');
-            throw new UnauthorizedException('User not found');
+            throw new UnauthorizedException('Invalid token');
           }
         } catch (refreshError) {
           this.logger.error(`Failed to refresh token: ${refreshError.message}`);
@@ -119,7 +120,7 @@ export function AuthGuard(type?: UserTypes) {
       }
     }
 
-    extractTokensFromHeader(request: Request): {
+    extractTokensFromCookies(request: Request): {
       accessToken: string;
       refreshToken: string;
     } {
