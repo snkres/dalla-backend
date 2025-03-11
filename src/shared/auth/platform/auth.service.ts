@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JWTService } from '../miscs/jwt';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 import { BcryptService } from '../miscs/bcrypt';
@@ -22,6 +27,8 @@ export class PlatformAuthService {
 
   async validateCompany(email: string, pass: string) {
     const user = await this.prisma.company.findFirst({ where: { email } });
+    if (!user.verified) throw new ForbiddenException('Company not verified');
+
     if (user) {
       const isCorrect = await this.bycrptService.comparePassword(
         pass,
@@ -161,8 +168,10 @@ export class PlatformAuthService {
 
   async validateProfessional(email: string, password: string) {
     const user = await this.prisma.user.findFirst({ where: { email } });
+    if (!user.verified) throw new UnauthorizedException('User not verified');
+
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new ForbiddenException('Invalid email or password');
     }
 
     const isCorrect = await this.bycrptService.comparePassword(
