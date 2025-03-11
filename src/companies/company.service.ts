@@ -68,6 +68,7 @@ export class CompanyService {
         onboarded: true,
         suspended: true,
         verified: true,
+        createdAt: true,
         CompanyProfile: {
           select: {
             location: true,
@@ -79,6 +80,7 @@ export class CompanyService {
             bio: true,
             logo: true,
             meta: true,
+            createdAt: true,
           },
         },
       },
