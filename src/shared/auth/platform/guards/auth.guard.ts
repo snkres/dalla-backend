@@ -138,7 +138,6 @@ export function AuthGuard(type?: UserTypes) {
     }
 
     determineType(id: string) {
-      console.log(id);
       if (id.startsWith('ck')) return UserTypes.Company;
       if (id.startsWith('pk')) return UserTypes.User;
 
