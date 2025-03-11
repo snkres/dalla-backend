@@ -168,10 +168,10 @@ export class PlatformAuthService {
 
   async validateProfessional(email: string, password: string) {
     const user = await this.prisma.user.findFirst({ where: { email } });
-    if (!user.verified) throw new UnauthorizedException('User not verified');
+    if (!user.verified) throw new ForbiddenException('User not verified');
 
     if (!user) {
-      throw new ForbiddenException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     const isCorrect = await this.bycrptService.comparePassword(
