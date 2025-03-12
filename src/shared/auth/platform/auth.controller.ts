@@ -36,11 +36,8 @@ export class PlatformAuthController {
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
-        {
-          cause: err,
-          description: err,
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
