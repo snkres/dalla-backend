@@ -32,6 +32,30 @@ class MetaDto {
   @IsObject()
   @IsNotEmpty()
   socialLinks: Map<string, string>;
+
+  @IsObject()
+  languages: Map<string, string>;
+
+  @IsNumber()
+  hourlyRate: number;
+
+  @IsString()
+  successRate: string;
+
+  @IsString()
+  totalEarned: string;
+
+  @IsString()
+  availability: string;
+
+  @IsString()
+  projectCompletion: string;
+
+  @IsNumber()
+  projectsCompleted: number;
+
+  @IsNumber()
+  weeklyAvailability: number;
 }
 
 export class ProfessionalOnboardingDto {

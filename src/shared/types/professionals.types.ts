@@ -5,7 +5,15 @@ export interface ProfessionalProfileMeta {
   location: string;
   yearsOfExperience: number;
   skills: string[];
-  socialLinks: Record<string, string>;
+  socialLinks: Map<string, string>;
+  languages: Map<string, string>;
+  hourlyRate: number;
+  successRate: string;
+  totalEarned: string;
+  availability: string;
+  projectCompletion: string;
+  projectsCompleted: number;
+  weeklyAvailability: number;
 }
 
 export interface ProfessionalExperience {
