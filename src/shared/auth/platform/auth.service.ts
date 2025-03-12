@@ -14,6 +14,7 @@ import { EmailService } from '@/shared/email/email.service';
 import { newId } from '@/shared/utils/unique-id';
 import { RegisterValidation } from './dto/register.validation';
 import { ProfessionalRegisterDto } from './dto/register-professional.dto';
+import { Company, User } from '@/prisma/postgres';
 
 @Injectable()
 export class PlatformAuthService {
@@ -27,7 +28,6 @@ export class PlatformAuthService {
 
   async validateCompany(email: string, pass: string) {
     const user = await this.prisma.company.findFirst({ where: { email } });
-    if (!user.verified) throw new ForbiddenException('Company not verified');
 
     if (user) {
       const isCorrect = await this.bycrptService.comparePassword(
@@ -35,13 +35,21 @@ export class PlatformAuthService {
         user.password,
       );
       if (user && isCorrect) {
+        this.validateAccount(user);
         return await this.jwtService.createTokens({
           email: user.email,
           userId: user.id,
           type: UserTypes.Company,
         });
+      } else {
+        throw new UnauthorizedException('Invalid email or password');
       }
     }
+  }
+
+  private validateAccount(account: User | Company) {
+    if (!account.verified) throw new ForbiddenException('Account not verified');
+    if (account.suspended) throw new ForbiddenException('Account is suspended');
   }
 
   async validateLogin(email: string, pass: string, type: UserTypes) {
@@ -168,7 +176,6 @@ export class PlatformAuthService {
 
   async validateProfessional(email: string, password: string) {
     const user = await this.prisma.user.findFirst({ where: { email } });
-    if (!user.verified) throw new ForbiddenException('User not verified');
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -182,6 +189,7 @@ export class PlatformAuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    this.validateAccount(user);
     return await this.jwtService.createTokens({
       email: user.email,
       userId: user.id,
