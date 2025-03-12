@@ -1,5 +1,10 @@
-export interface ProjectMeta {
+import { IsNumber, IsString } from 'class-validator';
+
+export class ProjectMeta {
+  @IsNumber()
   budget: number;
+
+  @IsString()
   duration: string;
 }
 
