@@ -221,6 +221,22 @@ export class ProfessionalsController {
     }
   }
 
+  @Get('projects/:projectId')
+  async getProjectById(
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+  ) {
+    try {
+      const project = await this.professionalsService.getProjectById(projectId);
+      return ResponseUtil.success(project, 'Project retrieved successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err,
+        err.HttpStatus || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
   // Project requests
 
   @Post('projects/:projectId/requests')
