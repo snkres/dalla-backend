@@ -6,16 +6,15 @@ import {
   UseInterceptors,
   HttpStatus,
   UseGuards,
-  // UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { ResponseUtil } from '../utils/response.util';
 import { CustomHttpException } from '../exceptions/custom-http-exception';
-import { UnifiedGuard } from '../auth/platform/guards/unified-guard';
+import { AuthGuard } from '../auth/platform/guards/auth.guard';
 
 @Controller('upload')
-@UseGuards(UnifiedGuard)
+@UseGuards(AuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
