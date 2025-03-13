@@ -46,10 +46,39 @@ export class ProjectService {
       where: {
         id,
       },
-      include: {
-        company: true,
-        proposals: true,
-        professional: true,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        skills: true,
+        meta: true,
+        createdAt: true,
+        deliverables: true,
+        jobTitle: true,
+        scope: true,
+        status: true,
+        _count: {
+          select: {
+            requests: true,
+          },
+        },
+        company: {
+          select: {
+            id: true,
+            name: true,
+            createdAt: true,
+            _count: {
+              select: {
+                projects: true,
+              },
+            },
+            CompanyProfile: {
+              select: {
+                location: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -62,10 +91,20 @@ export class ProjectService {
       .$extends(pagination())
       .project.paginate({
         where: { ...rest, professional: { id: professionalId } },
-        include: {
-          company: true,
-          professional: true,
-          proposals: true,
+        select: {
+          id: true,
+          title: true,
+          jobTitle: true,
+          description: true,
+          skills: true,
+          meta: true,
+          createdAt: true,
+          company: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       })
       .withPages({

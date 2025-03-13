@@ -16,46 +16,62 @@ import { Type } from 'class-transformer';
 
 class MetaDto {
   @IsPhoneNumber()
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @IsString()
-  @IsNotEmpty()
-  location: string;
+  @IsOptional()
+  location?: string;
 
   @IsNumber()
-  yearsOfExperience: number;
+  @IsOptional()
+  yearsOfExperience?: number;
 
   @IsArray()
   @IsString({ each: true })
-  skills: string[];
+  @IsOptional()
+  skills?: string[];
 
   @IsObject()
   @IsNotEmpty()
-  socialLinks: Map<string, string>;
+  @IsOptional()
+  socialLinks?: Map<string, string>;
 
   @IsObject()
-  languages: Map<string, string>;
+  @IsOptional()
+  languages?: Map<string, string>;
 
   @IsNumber()
-  hourlyRate: number;
+  @IsOptional()
+  hourlyRate?: number;
 
   @IsString()
-  successRate: string;
+  @IsOptional()
+  successRate?: string;
 
   @IsString()
-  totalEarned: string;
+  @IsOptional()
+  totalEarned?: string;
 
   @IsString()
-  availability: string;
+  @IsOptional()
+  availability?: string;
 
   @IsString()
-  projectCompletion: string;
+  @IsOptional()
+  projectCompletion?: string;
 
   @IsNumber()
-  projectsCompleted: number;
+  @IsOptional()
+  projectsCompleted?: number;
 
   @IsNumber()
-  weeklyAvailability: number;
+  @IsOptional()
+  weeklyAvailability?: number;
+
+  @IsString()
+  @IsOptional()
+  employmentType?: string;
 }
 
 export class ProfessionalOnboardingDto {
@@ -78,7 +94,7 @@ export class ProfessionalOnboardingDto {
   @ValidateNested()
   @Type(() => MetaDto)
   @IsOptional()
-  meta: MetaDto;
+  meta?: MetaDto;
 
   @IsString()
   @IsOptional()

@@ -1,10 +1,12 @@
 import { ProjectMeta } from '@/shared/types/project.types';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 
 export class createProjectValidation {
@@ -35,5 +37,7 @@ export class createProjectValidation {
 
   @IsObject()
   @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => ProjectMeta)
   meta: ProjectMeta;
 }
