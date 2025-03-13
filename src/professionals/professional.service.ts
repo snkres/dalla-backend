@@ -247,7 +247,10 @@ export class ProfessionalsService {
     query: PaginationDto,
     assigned: boolean = false,
   ) {
-    const options: FilterProjectsOptions = assigned ? { professionalId } : {};
+    const options: FilterProjectsOptions = {
+      status: 'Open',
+      ...(assigned ? { professionalId } : {}),
+    };
     return this.projectService.index(query, options);
   }
 
