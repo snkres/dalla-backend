@@ -59,7 +59,7 @@ export class ProjectService {
         status: true,
         _count: {
           select: {
-            requests: true,
+            proposals: true,
           },
         },
         company: {

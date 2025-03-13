@@ -185,7 +185,7 @@ export class CompanyService {
       proposalId,
     );
     if (proposal.project.companyId !== companyId) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException('Proposal not found');
     }
 
     return proposal;

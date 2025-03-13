@@ -15,7 +15,7 @@ export enum ProjectStatus {
   COMPLETED = 'Completed',
 }
 
-export enum RequestStatus {
+export enum ProposalStatus {
   PENDING = 'Pending',
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
