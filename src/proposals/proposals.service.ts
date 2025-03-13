@@ -1,10 +1,5 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
-import {
-  Prisma,
-  ProjectStatus,
-  Proposal,
-  ProposalStatus,
-} from '@/prisma/postgres';
+import { ProjectStatus, Proposal, ProposalStatus } from '@/prisma/postgres';
 import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { newId } from '@/shared/utils/unique-id';
