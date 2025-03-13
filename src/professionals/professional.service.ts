@@ -12,8 +12,8 @@ import { JsonValue } from '@prisma/client/runtime/library';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
-import { createProjectRequestValidation } from '@/projects/validation/create-request.validation';
-import { ProjectRequestsService } from '@/project-requests/project-requests.service';
+import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
+import { ProposalsService } from '@/proposals/proposals.service';
 import { ProjectService } from '@/projects/projects.service';
 import { FilterProjectsOptions } from '@/shared/types/professionals.types';
 import {
@@ -28,7 +28,7 @@ export class ProfessionalsService {
     private readonly prisma: PostgresPrismaService,
     private readonly uploadService: UploadService,
     private readonly projectService: ProjectService,
-    private readonly projectRequestsService: ProjectRequestsService,
+    private readonly proposalService: ProposalsService,
   ) {}
 
   async listProfessionals(query: PaginationDto) {
@@ -255,66 +255,66 @@ export class ProfessionalsService {
     return this.projectService.findProjectById(projectId);
   }
 
-  // Project requests methods
+  // Proposals methods
 
-  async createProjectRequest(
+  async createProposal(
     professionalId: string,
     projectId: string,
-    request: createProjectRequestValidation,
+    proposal: CreateProposalValidation,
   ) {
-    return this.projectRequestsService.createRequest(
+    return this.proposalService.createProposal(
       professionalId,
       projectId,
-      request,
+      proposal,
     );
   }
 
-  async getRequests(professionalId: string, query: PaginationDto) {
-    return this.projectRequestsService.findRequestByProfessionalId(
+  async getProposals(professionalId: string, query: PaginationDto) {
+    return this.proposalService.findProposalByProfessionalId(
       professionalId,
       query,
     );
   }
 
-  async getRequestById(
+  async getProposalById(
     professionalId: string,
     projectId: string,
-    requestId: string,
+    proposalId: string,
   ) {
-    const request = await this.projectRequestsService.findRequestById(
+    const proposal = await this.proposalService.findProposalById(
       projectId,
-      requestId,
+      proposalId,
     );
-    if (request.professionalId !== professionalId) {
-      throw new NotFoundException('Request not found');
+    if (proposal.professionalId !== professionalId) {
+      throw new NotFoundException('Proposal not found');
     }
 
-    return request;
+    return proposal;
   }
 
-  async modifyRequest(
+  async modifyProposal(
     professionalId: string,
     projectId: string,
-    requestId: string,
-    data: createProjectRequestValidation,
+    proposalId: string,
+    data: CreateProposalValidation,
   ) {
-    return this.projectRequestsService.modifyRequest(
+    return this.proposalService.modifyProposal(
       professionalId,
       projectId,
-      requestId,
+      proposalId,
       data,
     );
   }
 
-  async deleteRequest(
+  async deleteProposal(
     professionalId: string,
     projectId: string,
-    requestId: string,
+    proposalId: string,
   ) {
-    return this.projectRequestsService.deleteRequest(
+    return this.proposalService.deleteProposal(
       professionalId,
       projectId,
-      requestId,
+      proposalId,
     );
   }
 }

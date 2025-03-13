@@ -20,7 +20,7 @@ import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
-import { ChangeProjectRequestValidation } from './validation/change-project-request.validation';
+import { ChangeProjectProposalValidation } from './validation/change-project-proposal.validation';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
@@ -222,21 +222,21 @@ export class CompanyController {
     }
   }
 
-  // Project requests
+  // Project proposals
 
-  @Get('projects/:projectId/requests')
-  async getProjectRequests(
+  @Get('projects/:projectId/proposals')
+  async getProjectProposals(
     @CurrentCompany() company: Company,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
     @Query() query: PaginationDto,
   ) {
     try {
-      const requests = await this.companyService.projectRequests(
+      const proposals = await this.companyService.projectProposals(
         company.id,
         projectId,
         query,
       );
-      return ResponseUtil.success(requests, 'Project requests retrieved');
+      return ResponseUtil.success(proposals, 'Project proposals retrieved');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -249,20 +249,20 @@ export class CompanyController {
     }
   }
 
-  @Get('projects/:projectId/requests/:requestId')
-  async getProjectRequest(
+  @Get('projects/:projectId/proposals/:proposalId')
+  async getProjectProposal(
     @CurrentCompany() company: Company,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Param('requestId', new IdValidationPipe('projectRequest'))
-    requestId: string,
+    @Param('proposalId', new IdValidationPipe('proposal'))
+    proposalId: string,
   ) {
     try {
-      const request = await this.companyService.projectRequest(
+      const proposal = await this.companyService.projectProposal(
         company.id,
         projectId,
-        requestId,
+        proposalId,
       );
-      return ResponseUtil.success(request, 'Project request retrieved');
+      return ResponseUtil.success(proposal, 'Project proposal retrieved');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -275,24 +275,24 @@ export class CompanyController {
     }
   }
 
-  @Patch('projects/:projectId/requests/:requestId')
-  async modifyRequestStatus(
+  @Patch('projects/:projectId/proposals/:proposalId')
+  async modifyProposalStatus(
     @CurrentCompany() company: Company,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Param('requestId', new IdValidationPipe('projectRequest'))
-    requestId: string,
-    @Body() request: ChangeProjectRequestValidation,
+    @Param('proposalId', new IdValidationPipe('proposal'))
+    proposalId: string,
+    @Body() proposal: ChangeProjectProposalValidation,
   ) {
     try {
-      const updatedRequest = await this.companyService.modifyRequestStatus(
+      const updatedProposal = await this.companyService.modifyProposalStatus(
         company.id,
         projectId,
-        requestId,
-        request.status,
+        proposalId,
+        proposal.status,
       );
       return ResponseUtil.success(
-        updatedRequest,
-        'Project request updated successfully',
+        updatedProposal,
+        'Proposal updated successfully',
       );
     } catch (err) {
       throw new CustomHttpException(

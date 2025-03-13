@@ -59,7 +59,7 @@ export class ProjectService {
         status: true,
         _count: {
           select: {
-            requests: true,
+            proposals: true,
           },
         },
         company: {
@@ -124,7 +124,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          requests: true,
+          proposals: true,
         },
       })
       .withPages({
@@ -149,7 +149,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          requests: true,
+          proposals: true,
         },
       })
       .withPages({

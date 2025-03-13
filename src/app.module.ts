@@ -13,7 +13,7 @@ import { RedisModule } from './shared/auth/miscs/redis.module';
 import { ProjectModule } from './projects/projects.module';
 import DigitalOceanConfig from './shared/config/object-storage.config';
 import { ObjectStorageModule } from './shared/upload/object-storage.module';
-import { ProjectRequestsModule } from './project-requests/project-requests.module';
+import { ProposalsModule } from './proposals/proposals.module';
 
 @Module({
   imports: [
@@ -55,7 +55,7 @@ import { ProjectRequestsModule } from './project-requests/project-requests.modul
         module: CompanyModule,
       },
     ]),
-    ProjectRequestsModule,
+    ProposalsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PostgresPrismaService],
