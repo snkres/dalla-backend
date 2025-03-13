@@ -1,6 +1,11 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
-import { Prisma, ProjectStatus, RequestStatus } from '@/prisma/postgres';
-import { createProjectRequestValidation } from '@/projects/validation/create-request.validation';
+import {
+  Prisma,
+  ProjectStatus,
+  Proposal,
+  ProposalStatus,
+} from '@/prisma/postgres';
+import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { newId } from '@/shared/utils/unique-id';
 import {
@@ -11,21 +16,21 @@ import {
 import { pagination } from 'prisma-extension-pagination';
 
 @Injectable()
-export class ProjectRequestsService {
+export class ProposalsService {
   constructor(private readonly postgresService: PostgresPrismaService) {}
 
-  async createRequest(
+  async createProposal(
     professionalId: string,
     projectId: string,
-    data: createProjectRequestValidation,
+    data: CreateProposalValidation,
   ) {
-    const id = newId('projectRequest');
+    const id = newId('proposal');
+    const { relevantProjects, ...rest } = data;
     try {
-      return this.postgresService.professionalRequests.create({
+      return this.postgresService.proposal.create({
         data: {
           id,
-          status: RequestStatus.Pending,
-          description: data.description,
+          ...rest,
           professional: {
             connect: {
               id: professionalId,
@@ -36,6 +41,9 @@ export class ProjectRequestsService {
               id: projectId,
             },
           },
+          relevantProjects: {
+            connect: relevantProjects.map((projectId) => ({ id: projectId })),
+          },
         },
         include: {
           professional: true,
@@ -44,7 +52,7 @@ export class ProjectRequestsService {
       });
     } catch (error) {
       if (error.code === 'P2002') {
-        throw new BadRequestException('Request already exists');
+        throw new BadRequestException('Proposal already exists');
       } else if (error.code === 'P2016') {
         throw new BadRequestException('Professional or project not found');
       }
@@ -52,7 +60,7 @@ export class ProjectRequestsService {
     }
   }
 
-  async findRequestByProjectId(
+  async findProposalsByProjectId(
     companyId: string,
     projectId: string,
     query: PaginationDto,
@@ -61,7 +69,7 @@ export class ProjectRequestsService {
 
     return this.postgresService
       .$extends(pagination())
-      .professionalRequests.paginate({
+      .proposal.paginate({
         where: {
           projectId,
           project: {
@@ -78,19 +86,38 @@ export class ProjectRequestsService {
       });
   }
 
-  async findRequestByProfessionalId(
+  async findProposalByProfessionalId(
     professionalId: string,
     query: PaginationDto,
   ) {
     const { limit, page } = query;
     return this.postgresService
       .$extends(pagination())
-      .professionalRequests.paginate({
+      .proposal.paginate({
         where: {
           professionalId,
         },
-        include: {
-          project: true,
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          project: {
+            select: {
+              title: true,
+              meta: true,
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  CompanyProfile: {
+                    select: {
+                      meta: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       })
       .withPages({
@@ -99,10 +126,10 @@ export class ProjectRequestsService {
       });
   }
 
-  async findRequestById(projectId: string, requestId: string) {
-    const request = await this.postgresService.professionalRequests.findUnique({
+  async findProposalById(projectId: string, proposalId: string) {
+    const proposal = await this.postgresService.proposal.findUnique({
       where: {
-        id: requestId,
+        id: proposalId,
         projectId,
       },
       include: {
@@ -111,25 +138,25 @@ export class ProjectRequestsService {
       },
     });
 
-    if (!request) {
-      throw new NotFoundException('Request not found');
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
     }
 
-    return request;
+    return proposal;
   }
 
-  async modifyRequest(
+  async modifyProposal(
     professionalId: string,
     projectId: string,
-    requestId: string,
-    data: createProjectRequestValidation,
+    proposalId: string,
+    data: CreateProposalValidation,
   ) {
     try {
-      return this.postgresService.professionalRequests.update({
+      return this.postgresService.proposal.update({
         where: {
           professionalId,
           projectId,
-          id: requestId,
+          id: proposalId,
         },
         data: {
           description: data.description,
@@ -138,26 +165,25 @@ export class ProjectRequestsService {
     } catch (err) {
       if (err.code === 'P2025') {
         throw new BadRequestException(
-          'Request not found or does not belong to this professional',
+          'Proposal not found or does not belong to this professional',
         );
       }
       throw err;
     }
   }
 
-  async modifyRequestStatus(
+  async modifyProposalStatus(
     companyId: string,
     projectId: string,
-    requestId: string,
-    status: RequestStatus,
+    proposalId: string,
+    status: ProposalStatus,
   ) {
     return this.postgresService.$transaction(async () => {
-      let request: Prisma.ProfessionalRequestsMaxAggregateOutputType | null =
-        null;
+      let proposal: Proposal | null = null;
       try {
-        request = await this.postgresService.professionalRequests.update({
+        proposal = await this.postgresService.proposal.update({
           where: {
-            id: requestId,
+            id: proposalId,
             projectId,
             project: {
               companyId,
@@ -170,27 +196,29 @@ export class ProjectRequestsService {
       } catch (err) {
         if (err.code === 'P2025') {
           throw new BadRequestException(
-            'Request not found or does not belong to this company',
+            'Proposal not found or does not belong to this company',
           );
         }
         throw err;
       }
 
-      if (status === RequestStatus.Accepted) {
+      if (status === ProposalStatus.Accepted) {
         await this.connectProfessionalToProject(
-          request.projectId,
-          request.professionalId,
+          proposal.projectId,
+          proposal.professionalId,
+          proposal as Proposal,
         );
 
-        await this.rejectOtherRequests(request.projectId, requestId);
+        await this.rejectOtherProposals(proposal.projectId, proposalId);
       }
-      return request;
+      return proposal;
     });
   }
 
   private async connectProfessionalToProject(
     projectId: string,
     professionalId: string,
+    proposal: Proposal,
   ) {
     return this.postgresService.project.update({
       where: {
@@ -199,6 +227,10 @@ export class ProjectRequestsService {
       },
       data: {
         status: ProjectStatus.InProgress,
+        meta: {
+          budget: proposal.price,
+          timeline: proposal.timeline,
+        },
         professional: {
           connect: {
             id: professionalId,
@@ -208,40 +240,40 @@ export class ProjectRequestsService {
     });
   }
 
-  private async rejectOtherRequests(projectId: string, requestId: string) {
-    return this.postgresService.professionalRequests.updateMany({
+  private async rejectOtherProposals(projectId: string, proposalId: string) {
+    return this.postgresService.proposal.updateMany({
       where: {
         projectId,
         id: {
-          not: requestId,
+          not: proposalId,
         },
       },
       data: {
-        status: RequestStatus.Rejected,
+        status: ProposalStatus.Rejected,
       },
     });
   }
 
-  async deleteRequest(
+  async deleteProposal(
     professionalId: string,
     projectId: string,
-    requestId: string,
+    proposalId: string,
   ) {
     try {
-      return this.postgresService.professionalRequests.update({
+      return this.postgresService.proposal.update({
         where: {
           professionalId,
           projectId,
-          id: requestId,
+          id: proposalId,
         },
         data: {
-          status: RequestStatus.Rejected,
+          status: ProposalStatus.Rejected,
         },
       });
     } catch (err) {
       if (err.code === 'P2025') {
         throw new BadRequestException(
-          'Request not found or does not belong to this professional',
+          'Proposal not found or does not belong to this professional',
         );
       }
       throw err;

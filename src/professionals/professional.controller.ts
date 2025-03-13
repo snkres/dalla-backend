@@ -21,7 +21,7 @@ import { CurrentUser } from '@/shared/decorators/current-auth.decorator';
 import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { User } from '@/prisma/postgres';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
-import { createProjectRequestValidation } from '@/projects/validation/create-request.validation';
+import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
@@ -221,21 +221,25 @@ export class ProfessionalsController {
     }
   }
 
-  // Project requests
+  // Project proposals
 
-  @Post('projects/:projectId/requests')
-  async createProjectRequest(
+  @Post('projects/:projectId/proposals')
+  async createProposal(
     @CurrentUser() professional: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Body() data: createProjectRequestValidation,
+    @Body() data: CreateProposalValidation,
   ) {
     try {
-      const request = await this.professionalsService.createProjectRequest(
+      const proposal = await this.professionalsService.createProposal(
         professional.id,
         projectId,
         data,
       );
-      return ResponseUtil.success(request, 'Request created successfully', 201);
+      return ResponseUtil.success(
+        proposal,
+        'Proposal created successfully',
+        201,
+      );
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -248,17 +252,20 @@ export class ProfessionalsController {
     }
   }
 
-  @Get('requests')
-  async getProfessionalRequests(
+  @Get('proposals')
+  async getProfessionalProposals(
     @CurrentUser() user: User,
     @Query() query: PaginationDto,
   ) {
     try {
-      const requests = await this.professionalsService.getRequests(
+      const proposals = await this.professionalsService.getProposals(
         user.id,
         query,
       );
-      return ResponseUtil.success(requests, 'Requests retrieved successfully');
+      return ResponseUtil.success(
+        proposals,
+        'Proposals retrieved successfully',
+      );
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -271,20 +278,20 @@ export class ProfessionalsController {
     }
   }
 
-  @Get('projects/:projectId/requests/:requestId')
-  async getProfessionalRequest(
+  @Get('projects/:projectId/proposals/:proposalId')
+  async getProfessionalProposal(
     @CurrentUser() user: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Param('requestId', new IdValidationPipe('projectRequest'))
-    requestId: string,
+    @Param('proposalId', new IdValidationPipe('proposal'))
+    proposalId: string,
   ) {
     try {
-      const request = await this.professionalsService.getRequestById(
+      const proposal = await this.professionalsService.getProposalById(
         user.id,
         projectId,
-        requestId,
+        proposalId,
       );
-      return ResponseUtil.success(request, 'Request retrieved successfully');
+      return ResponseUtil.success(proposal, 'Proposal retrieved successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -297,22 +304,22 @@ export class ProfessionalsController {
     }
   }
 
-  @Put('projects/:projectId/requests/:requestId')
-  async updateProfessionalRequest(
+  @Put('projects/:projectId/proposals/:proposalId')
+  async updateProfessionalProposal(
     @CurrentUser() user: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Param('requestId', new IdValidationPipe('projectRequest'))
-    requestId: string,
-    @Body() data: createProjectRequestValidation,
+    @Param('proposalId', new IdValidationPipe('proposal'))
+    proposalId: string,
+    @Body() data: CreateProposalValidation,
   ) {
     try {
-      const request = await this.professionalsService.modifyRequest(
+      const proposal = await this.professionalsService.modifyProposal(
         user.id,
         projectId,
-        requestId,
+        proposalId,
         data,
       );
-      return ResponseUtil.success(request, 'Request updated successfully');
+      return ResponseUtil.success(proposal, 'Proposal updated successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -325,22 +332,22 @@ export class ProfessionalsController {
     }
   }
 
-  @Delete('projects/:projectId/requests/:requestId')
-  async deleteProfessionalRequest(
+  @Delete('projects/:projectId/proposals/:proposalId')
+  async deleteProfessionalProposal(
     @CurrentUser() user: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
-    @Param('requestId', new IdValidationPipe('projectRequest'))
-    requestId: string,
+    @Param('proposalId', new IdValidationPipe('proposal'))
+    proposalId: string,
   ) {
     try {
-      const updatedRequest = await this.professionalsService.deleteRequest(
+      const updatedProposal = await this.professionalsService.deleteProposal(
         user.id,
         projectId,
-        requestId,
+        proposalId,
       );
       return ResponseUtil.success(
-        updatedRequest,
-        'Request deleted successfully',
+        updatedProposal,
+        'Proposal deleted successfully',
         HttpStatus.OK,
       );
     } catch (err) {

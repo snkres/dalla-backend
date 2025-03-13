@@ -18,7 +18,7 @@ export const prefixes = {
   professionalProfile: 'pp',
   professional: 'pk',
   project: 'pj',
-  projectRequest: 'pr',
+  proposal: 'pr',
   professionalEducation: 'pe',
   professionalExperience: 'px',
   professionalProject: 'ppr',

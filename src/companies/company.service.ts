@@ -6,16 +6,16 @@ import { InputJsonValue } from '@prisma/client/runtime/library';
 import { ProjectService } from '@/projects/projects.service';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
-import { RequestStatus } from '@/prisma/postgres';
+import { ProposalStatus } from '@/prisma/postgres';
 import { ProjectStatus } from '@/shared/types/project.types';
-import { ProjectRequestsService } from '@/project-requests/project-requests.service';
+import { ProposalsService } from '@/proposals/proposals.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     private readonly prisma: PostgresPrismaService,
     private readonly projectService: ProjectService,
-    private readonly projectRequestsService: ProjectRequestsService,
+    private readonly proposalService: ProposalsService,
   ) {}
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {
@@ -119,11 +119,11 @@ export class CompanyService {
   }
 
   async companyProjects(companyId: string, query: PaginationDto) {
-    const requests = await this.projectService.findProjectsByCompanyId(
+    const projects = await this.projectService.findProjectsByCompanyId(
       companyId,
       query,
     );
-    return requests;
+    return projects;
   }
 
   async modifyProject(
@@ -160,47 +160,47 @@ export class CompanyService {
     return project;
   }
 
-  // Project requests methods
+  // Proposals methods
 
-  async projectRequests(
+  async projectProposals(
     companyId: string,
     projectId: string,
     query: PaginationDto,
   ) {
-    const requests = await this.projectRequestsService.findRequestByProjectId(
+    const proposals = await this.proposalService.findProposalsByProjectId(
       companyId,
       projectId,
       query,
     );
-    return requests;
+    return proposals;
   }
 
-  async projectRequest(
+  async projectProposal(
     companyId: string,
     projectId: string,
-    requestId: string,
+    proposalId: string,
   ) {
-    const request = await this.projectRequestsService.findRequestById(
+    const proposal = await this.proposalService.findProposalById(
       projectId,
-      requestId,
+      proposalId,
     );
-    if (request.project.companyId !== companyId) {
+    if (proposal.project.companyId !== companyId) {
       throw new NotFoundException('Request not found');
     }
 
-    return request;
+    return proposal;
   }
 
-  async modifyRequestStatus(
+  async modifyProposalStatus(
     companyId: string,
     projectsId: string,
-    requestId: string,
-    status: RequestStatus,
+    proposalId: string,
+    status: ProposalStatus,
   ) {
-    const project = await this.projectRequestsService.modifyRequestStatus(
+    const project = await this.proposalService.modifyProposalStatus(
       companyId,
       projectsId,
-      requestId,
+      proposalId,
       status,
     );
     //? fires notifications from the service itself

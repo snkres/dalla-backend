@@ -48,7 +48,7 @@ export class ProjectService {
       },
       include: {
         company: true,
-        requests: true,
+        proposals: true,
         professional: true,
       },
     });
@@ -65,7 +65,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          requests: true,
+          proposals: true,
         },
       })
       .withPages({
@@ -85,7 +85,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          requests: true,
+          proposals: true,
         },
       })
       .withPages({
@@ -110,7 +110,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          requests: true,
+          proposals: true,
         },
       })
       .withPages({
