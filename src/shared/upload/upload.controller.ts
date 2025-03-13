@@ -14,7 +14,7 @@ import { CustomHttpException } from '../exceptions/custom-http-exception';
 import { AuthGuard } from '../auth/platform/guards/auth.guard';
 
 @Controller('upload')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard())
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
