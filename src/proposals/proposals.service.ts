@@ -73,6 +73,7 @@ export class ProposalsService {
         },
         include: {
           professional: true,
+          relevantProjects: true,
         },
       })
       .withPages({
@@ -130,6 +131,7 @@ export class ProposalsService {
       include: {
         professional: true,
         project: true,
+        relevantProjects: true,
       },
     });
 
@@ -146,6 +148,7 @@ export class ProposalsService {
     proposalId: string,
     data: CreateProposalValidation,
   ) {
+    const { relevantProjects, ...rest } = data;
     try {
       return this.postgresService.proposal.update({
         where: {
@@ -154,7 +157,13 @@ export class ProposalsService {
           id: proposalId,
         },
         data: {
-          description: data.description,
+          ...rest,
+          relevantProjects: {
+            connect: relevantProjects.map((projectId) => ({ id: projectId })),
+          },
+        },
+        include: {
+          relevantProjects: true,
         },
       });
     } catch (err) {
@@ -186,6 +195,9 @@ export class ProposalsService {
           },
           data: {
             status,
+          },
+          include: {
+            relevantProjects: true,
           },
         });
       } catch (err) {
