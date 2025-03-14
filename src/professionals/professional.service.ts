@@ -269,7 +269,10 @@ export class ProfessionalsService {
       (proposal) => proposal.professionalId === professionalId,
     );
 
-    const { proposals, ...rest } = project;
+    const {
+      proposals: {},
+      ...rest
+    } = project;
     return {
       ...rest,
       proposals: professionalProposals,
