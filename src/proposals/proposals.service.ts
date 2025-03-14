@@ -97,8 +97,10 @@ export class ProposalsService {
           id: true,
           status: true,
           createdAt: true,
+          projectId: true,
           project: {
             select: {
+              id: true,
               title: true,
               meta: true,
               company: {
