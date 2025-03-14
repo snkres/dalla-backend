@@ -251,33 +251,11 @@ export class ProfessionalsService {
       status: 'Open',
       assigned,
     };
-    const projects = await this.projectService.index(
-      professionalId,
-      query,
-      options,
-    );
-
-    return projects[0].map((project) => {
-      const applied = project.proposals.length > 0;
-      return { ...project, applied };
-    });
+    return this.projectService.index(professionalId, query, options);
   }
 
   async getProjectById(professionalId: string, projectId: string) {
-    const project = await this.projectService.findProjectById(projectId);
-    const professionalProposals = project.proposals.filter(
-      (proposal) => proposal.professionalId === professionalId,
-    );
-
-    const {
-      proposals: {},
-      ...rest
-    } = project;
-    return {
-      ...rest,
-      proposals: professionalProposals,
-      applied: professionalProposals.length > 0,
-    };
+    return this.projectService.findProjectById(projectId);
   }
 
   // Proposals methods

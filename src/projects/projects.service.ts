@@ -113,14 +113,7 @@ export class ProjectService {
               name: true,
             },
           },
-          _count: {
-            select: {
-              proposals: true,
-            },
-          },
-          proposals: {
-            where: { professionalId },
-          },
+          proposals: true,
         },
       })
       .withPages({
