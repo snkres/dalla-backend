@@ -223,10 +223,14 @@ export class ProfessionalsController {
 
   @Get('projects/:projectId')
   async getProjectById(
+    @CurrentUser() user: User,
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
   ) {
     try {
-      const project = await this.professionalsService.getProjectById(projectId);
+      const project = await this.professionalsService.getProjectById(
+        user.id,
+        projectId,
+      );
       return ResponseUtil.success(project, 'Project retrieved successfully');
     } catch (err) {
       throw new CustomHttpException(

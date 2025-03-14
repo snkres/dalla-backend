@@ -15,7 +15,7 @@ import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
 import { ProposalsService } from '@/proposals/proposals.service';
 import { ProjectService } from '@/projects/projects.service';
-import { FilterProjectsOptions } from '@/shared/types/professionals.types';
+import { FilterProjectsOptions } from '@/shared/types/project.types';
 import {
   ProfessionalExperienceDto,
   UpdateProfessionalExperienceDto,
@@ -249,13 +249,32 @@ export class ProfessionalsService {
   ) {
     const options: FilterProjectsOptions = {
       status: 'Open',
-      ...(assigned ? { professionalId } : {}),
+      assigned,
     };
-    return this.projectService.index(query, options);
+    const projects = await this.projectService.index(
+      professionalId,
+      query,
+      options,
+    );
+
+    return projects[0].map((project) => {
+      const applied = project.proposals.length > 0;
+      return { ...project, applied };
+    });
   }
 
-  async getProjectById(projectId: string) {
-    return this.projectService.findProjectById(projectId);
+  async getProjectById(professionalId: string, projectId: string) {
+    const project = await this.projectService.findProjectById(projectId);
+    const professionalProposals = project.proposals.filter(
+      (proposal) => proposal.professionalId === professionalId,
+    );
+
+    const { proposals, ...rest } = project;
+    return {
+      ...rest,
+      proposals: professionalProposals,
+      applied: professionalProposals.length > 0,
+    };
   }
 
   // Proposals methods
