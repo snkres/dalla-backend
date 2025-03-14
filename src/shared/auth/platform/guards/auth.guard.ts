@@ -23,6 +23,7 @@ export function AuthGuard(type?: UserTypes) {
     public readonly logger = new PinoLogger({
       renameContext: AuthGuard.name,
     });
+    type: UserTypes;
 
     constructor(
       public jwtService: JWTService,
@@ -31,6 +32,7 @@ export function AuthGuard(type?: UserTypes) {
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+      this.type = type;
       const isPublic = this.reflector.getAllAndOverride<boolean>(
         IS_PUBLIC_KEY,
         [context.getHandler(), context.getClass()],
@@ -47,7 +49,7 @@ export function AuthGuard(type?: UserTypes) {
       let payload;
       try {
         payload = await this.jwtService.decodeAccessToken(accessToken);
-        type ??= this.determineType(payload.userId);
+        this.type ??= this.determineType(payload.userId);
       } catch (error) {
         return this.handleTokenErrors(
           error,
@@ -58,14 +60,14 @@ export function AuthGuard(type?: UserTypes) {
         );
       }
 
-      const record = await this.prisma[type as string].findUnique({
+      const record = await this.prisma[this.type as string].findUnique({
         where: {
           id: payload.userId,
         },
       });
 
       if (record) {
-        request[type] = record;
+        request[this.type] = record;
         return true;
       } else {
         this.logger.error('Record not found');
@@ -87,29 +89,27 @@ export function AuthGuard(type?: UserTypes) {
               refreshToken,
               accessToken,
             );
+          this.type ??= this.determineType(refreshPayload.userId);
 
-          type ??= this.determineType(refreshPayload.userId);
+          const record = await this.prisma[this.type as string].findUnique({
+            where: {
+              id: refreshPayload.userId,
+            },
+          });
+          if (!record) {
+            this.logger.error('User not found after refreshing token');
+            throw new UnauthorizedException('Invalid token');
+          }
+
           const newTokens = await this.jwtService.createTokens({
             email: refreshPayload.email,
             userId: refreshPayload.userId,
             type: refreshPayload.type,
           });
-
           setResponseCookies(response, newTokens);
 
-          const record = await this.prisma[type as string].findUnique({
-            where: {
-              id: refreshPayload.userId,
-            },
-          });
-
-          if (record) {
-            request[type] = record;
-            return true;
-          } else {
-            this.logger.error('User not found after refreshing token');
-            throw new UnauthorizedException('Invalid token');
-          }
+          request[this.type] = record;
+          return true;
         } catch (refreshError) {
           this.logger.error(`Failed to refresh token: ${refreshError.message}`);
           throw new UnauthorizedException('Invalid refresh token');
