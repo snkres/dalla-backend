@@ -259,7 +259,11 @@ export class ProfessionalsService {
 
     return projects[0].map((project) => {
       const applied = project.proposals.length > 0;
-      return { ...project, applied };
+      const {
+        proposals: {},
+        ...rest
+      } = project;
+      return { ...rest, applied };
     });
   }
 
@@ -275,7 +279,6 @@ export class ProfessionalsService {
     } = project;
     return {
       ...rest,
-      proposals: professionalProposals,
       applied: professionalProposals.length > 0,
     };
   }
