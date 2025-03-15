@@ -254,7 +254,7 @@ export class ProfessionalsService {
     return this.projectService.index(professionalId, query, options);
   }
 
-  async getProjectById(projectId: string) {
+  async getProjectById(professionalId: string, projectId: string) {
     return this.projectService.findProjectById(projectId);
   }
 
