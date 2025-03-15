@@ -6,8 +6,7 @@ import { InputJsonValue } from '@prisma/client/runtime/library';
 import { ProjectService } from '@/projects/projects.service';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
-import { ProposalStatus } from '@/prisma/postgres';
-import { ProjectStatus } from '@/shared/types/project.types';
+import { ProjectStatus, ProposalStatus } from '@/prisma/postgres';
 import { ProposalsService } from '@/proposals/proposals.service';
 
 @Injectable()
