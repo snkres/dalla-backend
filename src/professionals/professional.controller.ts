@@ -75,7 +75,7 @@ export class ProfessionalsController {
 
   @Get('profile')
   async getProfile(@CurrentUser() user: User) {
-    const profile = await this.professionalsService.getCurrentUser(user.id);
+    const profile = await this.professionalsService.getProfile(user.id);
     return ResponseUtil.success(profile, 'current user profile retrieved');
   }
 

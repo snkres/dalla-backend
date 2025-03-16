@@ -21,6 +21,7 @@ import {
   UpdateProfessionalExperienceDto,
 } from './dto/professional-experience.dto';
 import { ProfessionalProjectDto } from './dto/professional-project.dto';
+import { ProjectStatus } from 'prisma/client/postgres';
 
 @Injectable()
 export class ProfessionalsService {
@@ -82,22 +83,17 @@ export class ProfessionalsService {
             name: true,
             verified: true,
             username: true,
+            projects: {
+              where: {
+                status: ProjectStatus.Completed,
+                assignedProfessionalId: professionalId,
+              },
+            },
           },
         },
         education: true,
         experience: true,
         projects: true,
-      },
-    });
-  }
-
-  async getCurrentUser(userId: string) {
-    return await this.prisma.user.findFirst({
-      where: { id: userId },
-      include: {
-        UserProfile: {
-          include: { education: true, experience: true, projects: true },
-        },
       },
     });
   }
