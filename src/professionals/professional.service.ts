@@ -21,6 +21,7 @@ import {
   UpdateProfessionalExperienceDto,
 } from './dto/professional-experience.dto';
 import { ProfessionalProjectDto } from './dto/professional-project.dto';
+import { ProjectStatus } from 'prisma/client/postgres';
 
 @Injectable()
 export class ProfessionalsService {
@@ -102,6 +103,12 @@ export class ProfessionalsService {
             name: true,
             verified: true,
             username: true,
+            projects: {
+              where: {
+                status: ProjectStatus.Completed,
+                professional: { username },
+              },
+            },
           },
         },
         education: true,
