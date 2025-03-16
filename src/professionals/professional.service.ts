@@ -83,6 +83,12 @@ export class ProfessionalsService {
             name: true,
             verified: true,
             username: true,
+            projects: {
+              where: {
+                status: ProjectStatus.Completed,
+                assignedProfessionalId: professionalId,
+              },
+            },
           },
         },
         education: true,
@@ -114,17 +120,6 @@ export class ProfessionalsService {
         education: true,
         experience: true,
         projects: true,
-      },
-    });
-  }
-
-  async getCurrentUser(userId: string) {
-    return await this.prisma.user.findFirst({
-      where: { id: userId },
-      include: {
-        UserProfile: {
-          include: { education: true, experience: true, projects: true },
-        },
       },
     });
   }
