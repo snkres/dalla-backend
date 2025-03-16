@@ -45,6 +45,7 @@ export class ProjectService {
     return this.postgresService.project.findUnique({
       where: {
         id,
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -59,7 +60,11 @@ export class ProjectService {
         status: true,
         _count: {
           select: {
-            proposals: true,
+            proposals: {
+              where: {
+                deletedAt: null,
+              }
+            }
           },
         },
         company: {
@@ -69,7 +74,11 @@ export class ProjectService {
             createdAt: true,
             _count: {
               select: {
-                projects: true,
+                projects: {
+                  where: {
+                    deletedAt: null,
+                  }
+                },
               },
             },
             CompanyProfile: {
@@ -97,6 +106,7 @@ export class ProjectService {
       .project.paginate({
         where: {
           ...rest,
+          deletedAt: null,
           professional: { id: assigned ? professionalId : undefined },
         },
         select: {
@@ -115,7 +125,11 @@ export class ProjectService {
           },
           _count: {
             select: {
-              proposals: true,
+              proposals: {
+                where: {
+                  deletedAt: null,
+                },
+              },
             },
           },
           proposals: {
@@ -136,6 +150,7 @@ export class ProjectService {
       .project.paginate({
         where: {
           companyId,
+          deletedAt: null,
         },
         include: {
           company: true,
@@ -161,6 +176,7 @@ export class ProjectService {
           professional: {
             id: professionalId,
           },
+          deletedAt: null,
         },
         include: {
           company: true,
@@ -185,6 +201,7 @@ export class ProjectService {
         where: {
           id,
           companyId,
+          deletedAt: null,
         },
         data: {
           meta: meta as unknown as JsonObject,
@@ -211,6 +228,7 @@ export class ProjectService {
         },
         data: {
           status: ProjectStatus.Closed,
+          deletedAt: new Date(),
         },
       });
     } catch (err) {
@@ -233,6 +251,7 @@ export class ProjectService {
         where: {
           id,
           companyId,
+          deletedAt: null,
         },
         data: {
           status,

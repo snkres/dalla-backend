@@ -22,6 +22,17 @@ export class ProposalsService {
     const id = newId('proposal');
     const { relevantProjects, ...rest } = data;
     try {
+      const proposals = await this.postgresService.proposal.findMany({
+        where: {
+          professionalId,
+          projectId,
+          deletedAt: null,
+        },
+      });
+      if (proposals.some(p => p.deletedAt === null)) {
+        throw new BadRequestException('Proposal already exists');
+      }
+
       return this.postgresService.proposal.create({
         data: {
           id,
@@ -67,6 +78,7 @@ export class ProposalsService {
       .proposal.paginate({
         where: {
           projectId,
+          deletedAt: null,
           project: {
             companyId,
           },
@@ -92,6 +104,7 @@ export class ProposalsService {
       .proposal.paginate({
         where: {
           professionalId,
+          deletedAt: null,
         },
         select: {
           id: true,
@@ -129,6 +142,7 @@ export class ProposalsService {
       where: {
         id: proposalId,
         projectId,
+        deletedAt: null,
       },
       include: {
         professional: true,
@@ -137,7 +151,11 @@ export class ProposalsService {
             company: true,
             _count: {
               select: {
-                proposals: true,
+                proposals: {
+                  where: {
+                    deletedAt: null,
+                  }
+                },
               },
             },
           },
@@ -166,6 +184,7 @@ export class ProposalsService {
           professionalId,
           projectId,
           id: proposalId,
+          deletedAt: null,
         },
         data: {
           ...rest,
@@ -200,6 +219,7 @@ export class ProposalsService {
           where: {
             id: proposalId,
             projectId,
+            deletedAt: null,
             project: {
               companyId,
             },
@@ -265,6 +285,7 @@ export class ProposalsService {
         id: {
           not: proposalId,
         },
+        deletedAt: null,
       },
       data: {
         status: ProposalStatus.Rejected,
@@ -285,7 +306,7 @@ export class ProposalsService {
           id: proposalId,
         },
         data: {
-          status: ProposalStatus.Rejected,
+          deletedAt: new Date(),
         },
       });
     } catch (err) {
