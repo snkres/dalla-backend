@@ -115,4 +115,11 @@ export class PlatformAuthController {
       );
     }
   }
+
+  @Post('logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    return ResponseUtil.success('Logged out successfully');
+  }
 }
