@@ -149,6 +149,7 @@ model Project {
   proposals              Proposal[]
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
+  deletedAt              DateTime?
 
   company      Company @relation(fields: [companyId], references: [id])
   professional User?   @relation(fields: [assignedProfessionalId], references: [id])
@@ -167,11 +168,10 @@ model Proposal {
   status    ProposalStatus @default(Pending)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
 
   project      Project @relation(fields: [projectId], references: [id])
   professional User    @relation(fields: [professionalId], references: [id])
-
-  @@unique([projectId, professionalId])
 }
 
 enum ProjectStatus {
