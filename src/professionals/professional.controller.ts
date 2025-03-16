@@ -114,8 +114,8 @@ export class ProfessionalsController {
     return ResponseUtil.success(profile, 'Professional profile retrieved');
   }
 
-  @Get('company/:companyId')
-  async getCompany(@Param('companyId') companyId: string) {
+  @Get('company/:id')
+  async getCompany(@Param('id') companyId: string) {
     try {
       const company = await this.companyService.getProfile(companyId);
       return ResponseUtil.success(company, 'Company retrieved successfully');

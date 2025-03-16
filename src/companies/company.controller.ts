@@ -101,14 +101,14 @@ export class CompanyController {
     }
   }
 
-  @Get('professional/:professionalUsername')
+  @Get('professional/:username')
   async getProfessional(
-    @Param('professionalUsername') professionalUsername: string,
+    @Param('username') username: string,
   ) {
     try {
       const professional =
         await this.professionalsService.getProfileByUsername(
-          professionalUsername,
+          username,
         );
       return ResponseUtil.success(
         professional,
