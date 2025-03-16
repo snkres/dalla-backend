@@ -24,11 +24,15 @@ import { ChangeProjectProposalValidation } from './validation/change-project-pro
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
+import { ProfessionalsService } from '@/professionals/professional.service';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.Company))
 export class CompanyController {
-  constructor(private readonly companyService: CompanyService) {}
+  constructor(
+    private readonly companyService: CompanyService,
+    private readonly professionalsService: ProfessionalsService,
+  ) {}
 
   @Post('onboarding')
   async companyLogin(
@@ -57,9 +61,7 @@ export class CompanyController {
   @Get('profile')
   async getProfile(@CurrentCompany() company: Company) {
     try {
-      const companyProfile = await this.companyService.getCompanyProfile(
-        company.id,
-      );
+      const companyProfile = await this.companyService.getProfile(company.id);
       return ResponseUtil.success(
         companyProfile,
         'Company profile retrieved successfully',
@@ -95,6 +97,28 @@ export class CompanyController {
         err.message,
         err.errors,
         HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('professional/:professionalUsername')
+  async getProfessional(
+    @Param('professionalUsername') professionalUsername: string,
+  ) {
+    try {
+      const professional =
+        await this.professionalsService.getProfileByUsername(
+          professionalUsername,
+        );
+      return ResponseUtil.success(
+        professional,
+        'Professional retrieved successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
       );
     }
   }

@@ -91,6 +91,26 @@ export class ProfessionalsService {
     });
   }
 
+  async getProfileByUsername(username: string) {
+    return await this.prisma.userProfile.findFirst({
+      where: { User: { username } },
+      include: {
+        User: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            verified: true,
+            username: true,
+          },
+        },
+        education: true,
+        experience: true,
+        projects: true,
+      },
+    });
+  }
+
   async getCurrentUser(userId: string) {
     return await this.prisma.user.findFirst({
       where: { id: userId },
