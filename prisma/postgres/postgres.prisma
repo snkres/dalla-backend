@@ -26,6 +26,7 @@ model User {
 
   @@unique([email, id, username])
   @@index([email])
+  @@index([username])
 }
 
 model Company {

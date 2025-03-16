@@ -146,10 +146,9 @@ export class PlatformAuthService {
     const { password, ...rest } = registerDto;
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        email: registerDto.email,
+        OR: [{ email: registerDto.email }, { username: registerDto.username }],
       },
     });
-
     if (existingUser) {
       throw new UnauthorizedException('professional already exists');
     }
