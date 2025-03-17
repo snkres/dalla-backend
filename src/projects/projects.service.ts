@@ -159,7 +159,19 @@ export class ProjectService {
             where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
             include: {
-              professional: true,
+              professional: {
+                select: {
+                  id: true,
+                  name: true,
+                  UserProfile: {
+                    select: {
+                      headline: true,
+                      avatar: true,
+                      meta: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
