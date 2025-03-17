@@ -106,11 +106,10 @@ export class ProfessionalsController {
     }
   }
 
-  @Get('profile/:professionalId')
-  async getProfessionalProfile(
-    @Param('professionalId') professionalId: string,
-  ) {
-    const profile = await this.professionalsService.getProfile(professionalId);
+  @Get('profile/:username')
+  async getProfessionalProfile(@Param('username') username: string) {
+    const profile =
+      await this.professionalsService.getProfileByUsername(username);
     return ResponseUtil.success(profile, 'Professional profile retrieved');
   }
 
