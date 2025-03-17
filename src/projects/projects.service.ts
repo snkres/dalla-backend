@@ -63,8 +63,8 @@ export class ProjectService {
             proposals: {
               where: {
                 deletedAt: null,
-              }
-            }
+              },
+            },
           },
         },
         company: {
@@ -77,7 +77,7 @@ export class ProjectService {
                 projects: {
                   where: {
                     deletedAt: null,
-                  }
+                  },
                 },
               },
             },
@@ -155,7 +155,13 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          proposals: true,
+          proposals: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              professional: true,
+            },
+          },
         },
       })
       .withPages({
