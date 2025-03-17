@@ -32,6 +32,34 @@ class MetaDto {
   @IsObject()
   @IsNotEmpty()
   socialLinks: Map<string, string>;
+
+  @IsNumber()
+  @IsOptional()
+  hourlyRate?: number;
+
+  @IsNumber()
+  @IsOptional()
+  totalEarned?: number;
+
+  @IsNumber()
+  @IsOptional()
+  projectsCompleted?: number;
+
+  @IsNumber()
+  @IsOptional()
+  successRate?: number;
+
+  @IsString()
+  @IsOptional()
+  weeklyAvailability?: string;
+
+  @IsString()
+  @IsOptional()
+  availability?: string;
+
+  @IsString()
+  @IsOptional()
+  projectCompletion?: string;
 }
 
 export class ProfessionalUpdateValidation {
