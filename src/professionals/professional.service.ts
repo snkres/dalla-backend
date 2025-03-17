@@ -83,6 +83,7 @@ export class ProfessionalsService {
             name: true,
             verified: true,
             username: true,
+            onboarded: true,
             projects: {
               where: {
                 status: ProjectStatus.Completed,
