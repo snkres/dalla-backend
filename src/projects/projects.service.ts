@@ -162,6 +162,7 @@ export class ProjectService {
               professional: {
                 select: {
                   id: true,
+                  username: true,
                   name: true,
                   UserProfile: {
                     select: {
