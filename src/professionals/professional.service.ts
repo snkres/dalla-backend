@@ -99,6 +99,32 @@ export class ProfessionalsService {
     });
   }
 
+  async getProfileByUsername(username: string) {
+    return await this.prisma.userProfile.findFirst({
+      where: { User: { username } },
+      include: {
+        User: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            verified: true,
+            username: true,
+            projects: {
+              where: {
+                status: ProjectStatus.Completed,
+                professional: { username },
+              },
+            },
+          },
+        },
+        education: true,
+        experience: true,
+        projects: true,
+      },
+    });
+  }
+
   async updateProfile(
     professionalId: string,
     onboardingData: ProfessionalUpdateValidation,

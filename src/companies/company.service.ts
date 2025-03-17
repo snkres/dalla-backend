@@ -52,7 +52,7 @@ export class CompanyService {
     });
   }
 
-  async getCompanyProfile(companyId: string) {
+  async getProfile(companyId: string) {
     return this.prisma.company.findUnique({
       where: {
         id: companyId,

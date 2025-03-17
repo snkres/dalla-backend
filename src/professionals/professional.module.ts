@@ -9,12 +9,14 @@ import { ConfigModule } from '@nestjs/config';
 import { JWTService } from '@/shared/auth/miscs/jwt';
 import { ProjectService } from '@/projects/projects.service';
 import { ProposalsService } from '@/proposals/proposals.service';
+import { CompanyService } from '@/companies/company.service';
 
 @Module({
   imports: [PlatformAuthModule, ConfigModule],
   providers: [
     PostgresPrismaService,
     ProfessionalsService,
+    CompanyService,
     UploadService,
     ObjectStorageService,
     JWTService,
