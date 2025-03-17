@@ -29,11 +29,15 @@ import { FetchProjectsOptionsDto } from '@/projects/dto/fetch-projects-options.d
 import { ProfessionalProjectDto } from './dto/professional-project.dto';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
+import { CompanyService } from '@/companies/company.service';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.User))
 export class ProfessionalsController {
-  constructor(private readonly professionalsService: ProfessionalsService) {}
+  constructor(
+    private readonly professionalsService: ProfessionalsService,
+    private readonly companyService: CompanyService,
+  ) {}
 
   @Post('parse-resume')
   @UseInterceptors(
@@ -108,6 +112,20 @@ export class ProfessionalsController {
   ) {
     const profile = await this.professionalsService.getProfile(professionalId);
     return ResponseUtil.success(profile, 'Professional profile retrieved');
+  }
+
+  @Get('company/:id')
+  async getCompany(@Param('id') companyId: string) {
+    try {
+      const company = await this.companyService.getProfile(companyId);
+      return ResponseUtil.success(company, 'Company retrieved successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Post('profile/:professionalId/projects')
