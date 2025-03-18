@@ -21,7 +21,7 @@ import { CurrentUser } from '@/shared/decorators/current-auth.decorator';
 import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { User } from '@/prisma/postgres';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
-import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
+import { CreateProposalValidation } from '@/proposals/dto/create-proposal.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
@@ -30,6 +30,8 @@ import { ProfessionalProjectDto } from './dto/professional-project.dto';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 import { CompanyService } from '@/companies/company.service';
+import { ProposalsService } from '@/proposals/proposals.service';
+import { GetProposalsStatisticsDto } from '@/proposals/dto/get-proposals-statistics.dto';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.User))
@@ -37,6 +39,7 @@ export class ProfessionalsController {
   constructor(
     private readonly professionalsService: ProfessionalsService,
     private readonly companyService: CompanyService,
+    private readonly proposalService: ProposalsService,
   ) {}
 
   @Post('parse-resume')
@@ -265,6 +268,30 @@ export class ProfessionalsController {
   }
 
   // Project proposals
+
+  @Get('proposals/statistics')
+  async getStatistics(
+    @CurrentUser() professional: User,
+    @Body() body: GetProposalsStatisticsDto,
+  ) {
+    try {
+      const statistics = await this.proposalService.getStatistics(
+        professional.id,
+        body.from,
+        body.to,
+      );
+      return ResponseUtil.success(
+        statistics,
+        'Statistics retrieved successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err,
+        err.HttpStatus || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
 
   @Post('projects/:projectId/proposals')
   async createProposal(

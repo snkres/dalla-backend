@@ -12,7 +12,7 @@ import { JsonValue } from '@prisma/client/runtime/library';
 import { ProfessionalUpdateValidation } from './dto/professional-update.validation';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
-import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
+import { CreateProposalValidation } from '@/proposals/dto/create-proposal.validation';
 import { ProposalsService } from '@/proposals/proposals.service';
 import { ProjectService } from '@/projects/projects.service';
 import { FilterProjectsOptions } from '@/shared/types/project.types';

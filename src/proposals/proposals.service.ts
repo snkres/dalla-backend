@@ -1,7 +1,8 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { ProjectStatus, Proposal, ProposalStatus } from '@/prisma/postgres';
-import { CreateProposalValidation } from '@/projects/validation/create-proposal.validation';
+import { CreateProposalValidation } from '@/proposals/dto/create-proposal.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { ProposalStatistics } from '@/shared/types/proposal.types';
 import { newId } from '@/shared/utils/unique-id';
 import {
   BadRequestException,
@@ -329,5 +330,42 @@ export class ProposalsService {
       }
       throw err;
     }
+  }
+
+  async getStatistics(
+    professionalId: string,
+    from: Date,
+    to: Date,
+  ): Promise<ProposalStatistics> {
+    const proposalStats = await this.postgresService.proposal.groupBy({
+      by: ['status'],
+      where: {
+        professionalId,
+        deletedAt: null,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+      },
+      _count: true,
+    });
+
+    // Calculate total and accepted proposals from the results
+    let totalProposals = 0;
+    let acceptedProposals = 0;
+    proposalStats.forEach((stat) => {
+      totalProposals += stat._count;
+      if (stat.status === ProposalStatus.Accepted) {
+        acceptedProposals = stat._count;
+      }
+    });
+
+    return {
+      totalProposals,
+      acceptedProposals,
+      successRate:
+        totalProposals > 0 ? (acceptedProposals / totalProposals) * 100 : 0,
+      interviews: 0, // Will be handled later
+    };
   }
 }
