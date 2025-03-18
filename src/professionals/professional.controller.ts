@@ -272,13 +272,13 @@ export class ProfessionalsController {
   @Get('proposals/statistics')
   async getStatistics(
     @CurrentUser() professional: User,
-    @Body() body: GetProposalsStatisticsDto,
+    @Query() query: GetProposalsStatisticsDto,
   ) {
     try {
       const statistics = await this.proposalService.getStatistics(
         professional.id,
-        body.from,
-        body.to,
+        query.from,
+        query.to,
       );
       return ResponseUtil.success(
         statistics,
