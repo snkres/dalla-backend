@@ -102,17 +102,32 @@ export class CompanyController {
   }
 
   @Get('professional/:username')
-  async getProfessional(
-    @Param('username') username: string,
-  ) {
+  async getProfessional(@Param('username') username: string) {
     try {
       const professional =
-        await this.professionalsService.getProfileByUsername(
-          username,
-        );
+        await this.professionalsService.getProfileByUsername(username);
       return ResponseUtil.success(
         professional,
         'Professional retrieved successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('professional')
+  async listProfessionals(@Query() query: PaginationDto) {
+    try {
+      const professionals =
+        await this.professionalsService.listProfessionals(query);
+      return ResponseUtil.success(
+        professionals,
+        'Professionals retrieved successfully',
+        HttpStatus.OK,
       );
     } catch (err) {
       throw new CustomHttpException(

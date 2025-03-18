@@ -37,16 +37,19 @@ export class ProfessionalsService {
       .$extends(pagination())
       .userProfile.paginate({
         where: { User: { onboarded: true, suspended: false } },
-        include: {
+        select: {
+          avatar: true,
+          headline: true,
+          meta: true,
+          userId: true,
           User: {
             select: {
               id: true,
+              username: true,
               email: true,
               name: true,
             },
           },
-          education: true,
-          experience: true,
         },
       })
       .withPages({
