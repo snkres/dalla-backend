@@ -135,7 +135,13 @@ export class ProjectService {
     const { assigned, ...rest } = options;
 
     return this.postgresService
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .project.paginate({
         where: {
           ...rest,
@@ -179,7 +185,13 @@ export class ProjectService {
   async findProjectsByCompanyId(companyId: string, query: PaginationDto) {
     const { page, limit } = query;
     return this.postgresService
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .project.paginate({
         where: {
           companyId,
@@ -222,7 +234,13 @@ export class ProjectService {
   ) {
     const { page, limit } = query;
     return this.postgresService
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .project.paginate({
         where: {
           professional: {
