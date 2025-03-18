@@ -148,6 +148,7 @@ model Project {
   companyId              String
   assignedProfessionalId String?
   proposals              Proposal[]
+  media                  String[]
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
   deletedAt              DateTime?

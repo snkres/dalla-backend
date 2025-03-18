@@ -35,6 +35,11 @@ export class createProjectValidation {
   @IsNotEmpty()
   skills: string[];
 
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  media: string[];
+
   @IsObject()
   @IsNotEmpty()
   @ValidateNested()
