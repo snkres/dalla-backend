@@ -34,7 +34,13 @@ export class ProfessionalsService {
 
   async listProfessionals(query: PaginationDto) {
     return await this.prisma
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .userProfile.paginate({
         where: { User: { onboarded: true, suspended: false } },
         select: {
@@ -313,14 +319,17 @@ export class ProfessionalsService {
       options,
     );
 
-    return projects[0].map((project) => {
-      const applied = project.proposals.length > 0;
-      const {
-        proposals: {},
-        ...rest
-      } = project;
-      return { ...rest, applied };
-    });
+    return [
+      projects[0].map((project) => {
+        const applied = project.proposals.length > 0;
+        const {
+          proposals: {},
+          ...rest
+        } = project;
+        return { ...rest, applied };
+      }),
+      projects[1],
+    ];
   }
 
   async getProjectById(professionalId: string, projectId: string) {

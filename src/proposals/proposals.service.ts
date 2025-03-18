@@ -29,7 +29,7 @@ export class ProposalsService {
           deletedAt: null,
         },
       });
-      if (proposals.some(p => p.deletedAt === null)) {
+      if (proposals.some((p) => p.deletedAt === null)) {
         throw new BadRequestException('Proposal already exists');
       }
 
@@ -74,7 +74,13 @@ export class ProposalsService {
     const { page, limit } = query;
 
     return this.postgresService
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .proposal.paginate({
         where: {
           projectId,
@@ -100,7 +106,13 @@ export class ProposalsService {
   ) {
     const { limit, page } = query;
     return this.postgresService
-      .$extends(pagination())
+      .$extends(
+        pagination({
+          pages: {
+            includePageCount: true,
+          },
+        }),
+      )
       .proposal.paginate({
         where: {
           professionalId,
@@ -154,7 +166,7 @@ export class ProposalsService {
                 proposals: {
                   where: {
                     deletedAt: null,
-                  }
+                  },
                 },
               },
             },
