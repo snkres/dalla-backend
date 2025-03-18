@@ -336,6 +336,9 @@ export class ProfessionalsService {
 
   async getProjectById(professionalId: string, projectId: string) {
     const project = await this.projectService.findProjectById(projectId);
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
     const professionalProposals = project.proposals.filter(
       (proposal) => proposal.professionalId === professionalId,
     );
