@@ -88,7 +88,40 @@ export class ProjectService {
             },
           },
         },
-        proposals: true,
+        professional: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            UserProfile: {
+              select: {
+                headline: true,
+                avatar: true,
+                meta: true,
+              },
+            },
+          },
+        },
+        proposals: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            professional: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                UserProfile: {
+                  select: {
+                    headline: true,
+                    avatar: true,
+                    meta: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   }
