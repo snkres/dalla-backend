@@ -75,7 +75,7 @@ export class ProfessionalsController {
       throw new CustomHttpException(
         err.message,
         err.errors,
-        HttpStatus.BAD_REQUEST,
+        err.status || HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -242,7 +242,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -262,7 +262,7 @@ export class ProfessionalsController {
       throw new CustomHttpException(
         err?.message,
         err,
-        err.HttpStatus || HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -288,7 +288,7 @@ export class ProfessionalsController {
       throw new CustomHttpException(
         err?.message,
         err,
-        err.HttpStatus || HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -317,7 +317,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -343,7 +343,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -369,7 +369,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -397,7 +397,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
@@ -427,7 +427,7 @@ export class ProfessionalsController {
           cause: err,
           description: err,
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }
