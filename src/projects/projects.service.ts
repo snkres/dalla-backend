@@ -58,6 +58,7 @@ export class ProjectService {
         jobTitle: true,
         scope: true,
         status: true,
+        media: true,
         _count: {
           select: {
             proposals: {
