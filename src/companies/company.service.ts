@@ -91,7 +91,9 @@ export class CompanyService {
       where: { id: companyId },
       select: {
         id: true,
+        email: true,
         name: true,
+        onboarded: true,
         CompanyProfile: {
           select: {
             headline: true,

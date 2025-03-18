@@ -140,7 +140,9 @@ export class ProfessionalsService {
       select: {
         id: true,
         username: true,
+        email: true,
         name: true,
+        onboarded: true,
         UserProfile: {
           select: {
             headline: true,
