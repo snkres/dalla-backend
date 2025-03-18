@@ -106,6 +106,12 @@ export class ProfessionalsController {
     }
   }
 
+  @Get('profile/meta')
+  async getMeta(@CurrentUser() user: User) {
+    const meta = await this.professionalsService.getMeta(user.id);
+    return ResponseUtil.success(meta, 'Professional meta retrieved');
+  }
+
   @Get('profile/:username')
   async getProfessionalProfile(@Param('username') username: string) {
     const profile =
