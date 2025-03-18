@@ -77,7 +77,7 @@ model UserProfile {
   avatar     String
   meta       Json? // will include phone, location, years of exprerience, skills, website link
   resume     String?
-  precentage Float?           @default(20)
+  percentage Float?           @default(20)
   experience UserExperience[]
   education  UserEducation[]
   projects   UserProject[]

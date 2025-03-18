@@ -140,7 +140,7 @@ export class ProfessionalsService {
             headline: true,
             avatar: true,
             meta: true,
-            precentage: true,
+            percentage: true,
           },
         },
         _count: {
