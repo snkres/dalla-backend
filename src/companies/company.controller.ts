@@ -101,6 +101,20 @@ export class CompanyController {
     }
   }
 
+  @Get('profile/meta')
+  async getMeta(@CurrentCompany() company: Company) {
+    try {
+      const meta = await this.companyService.getMeta(company.id);
+      return ResponseUtil.success(meta, 'Company meta retrieved successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err.message,
+        err.errors,
+        err.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Get('professional/:username')
   async getProfessional(@Param('username') username: string) {
     try {

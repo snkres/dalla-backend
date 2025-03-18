@@ -86,6 +86,31 @@ export class CompanyService {
     });
   }
 
+  async getMeta(companyId: string) {
+    return this.prisma.company.findFirst({
+      where: { id: companyId },
+      select: {
+        id: true,
+        name: true,
+        CompanyProfile: {
+          select: {
+            headline: true,
+            logo: true,
+          },
+        },
+        _count: {
+          select: {
+            projects: {
+              where: {
+                status: ProjectStatus.InProgress,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async updateCompanyProfile(
     companyId: string,
     updateData: OnboardingValidation,
