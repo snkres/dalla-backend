@@ -312,22 +312,24 @@ export class ProjectService {
     }
   }
 
-  async changeProjectStatus(
+  async modifyProjectStatus(
     companyId: string,
     id: string,
     status: ProjectStatus,
   ) {
     try {
-      return this.postgresService.project.update({
-        where: {
-          id,
-          companyId,
-          deletedAt: null,
-        },
-        data: {
-          status,
-        },
-      });
+      // Raw SQL is used here because Prisma does not support updating JSON fields
+      return this.postgresService.$executeRaw`
+      UPDATE "Project"
+      SET 
+        "status" = ${status}::"ProjectStatus",
+        "meta" = "meta"::jsonb || CASE 
+          WHEN ${status} = 'Completed' THEN jsonb_build_object('endedAt', NOW())
+        END
+      WHERE 
+        "id" = ${id} 
+        AND "companyId" = ${companyId} 
+        AND "deletedAt" IS NULL;`;
     } catch (err) {
       if (err.code === 'P2025') {
         throw new NotFoundException(
