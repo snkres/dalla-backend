@@ -136,6 +136,8 @@ export class ProposalsService {
                   CompanyProfile: {
                     select: {
                       meta: true,
+                      location: true,
+                      logo: true,
                     },
                   },
                 },
