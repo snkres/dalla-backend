@@ -147,6 +147,7 @@ export class ProjectService {
         where: {
           ...rest,
           deletedAt: null,
+          approved: true,
           professional: { id: assigned ? professionalId : undefined },
         },
         select: {
