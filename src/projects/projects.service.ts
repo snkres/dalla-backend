@@ -85,6 +85,7 @@ export class ProjectService {
             CompanyProfile: {
               select: {
                 location: true,
+                logo: true,
               },
             },
           },
