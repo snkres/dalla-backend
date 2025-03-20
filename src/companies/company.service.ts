@@ -176,7 +176,7 @@ export class CompanyService {
     projectId: string,
     status: ProjectStatus,
   ) {
-    const project = await this.projectService.changeProjectStatus(
+    const project = await this.projectService.modifyProjectStatus(
       companyId,
       projectId,
       status,
