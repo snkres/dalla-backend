@@ -318,6 +318,7 @@ export class ProjectService {
     status: ProjectStatus,
   ) {
     try {
+      // @todo refactor
       // Raw SQL is used here because Prisma does not support updating JSON fields
       return this.postgresService.$executeRaw`
       UPDATE "Project"
