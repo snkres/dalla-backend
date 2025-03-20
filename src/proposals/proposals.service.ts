@@ -170,6 +170,7 @@ export class ProposalsService {
                   select: {
                     meta: true,
                     location: true,
+                    logo: true,
                   },
                 },
               },
