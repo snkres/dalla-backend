@@ -60,6 +60,10 @@ class MetaDto {
   @IsString()
   @IsOptional()
   projectCompletion?: string;
+
+  @IsObject()
+  @IsOptional()
+  languages?: Map<string, string>;
 }
 
 export class ProfessionalUpdateValidation {
