@@ -163,7 +163,17 @@ export class ProposalsService {
         professional: true,
         project: {
           include: {
-            company: true,
+            company: {
+              select: {
+                name: true,
+                CompanyProfile: {
+                  select: {
+                    meta: true,
+                    location: true,
+                  },
+                },
+              },
+            },
             _count: {
               select: {
                 proposals: {
