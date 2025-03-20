@@ -15,7 +15,7 @@ import {
 import { CompanyService } from './company.service';
 import { CurrentCompany } from '@/shared/decorators/current-auth.decorator';
 import { OnboardingValidation } from './validation/onboarding.validation';
-import { Company } from '@/prisma/postgres';
+import { Company, ProjectStatus } from '@/prisma/postgres';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
@@ -247,6 +247,34 @@ export class CompanyController {
           description: err,
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Patch('projects/:projectId')
+  async changeProjectStatus(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Body() status: { status: ProjectStatus },
+  ) {
+    try {
+      const updatedProject = await this.companyService.modifyProjectStatus(
+        company.id,
+        projectId,
+        status.status,
+      );
+      return ResponseUtil.success(
+        updatedProject,
+        'Project status changed successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }

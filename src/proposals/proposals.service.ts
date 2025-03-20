@@ -283,6 +283,7 @@ export class ProposalsService {
         meta: {
           budget: proposal.price,
           timeline: proposal.timeline,
+          startedAt: new Date(),
         },
         professional: {
           connect: {
