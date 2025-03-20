@@ -82,6 +82,12 @@ export class CompanyService {
             createdAt: true,
           },
         },
+        projects: {
+          where: {
+            deletedAt: null,
+            status: 'Open',
+          },
+        },
       },
     });
   }
