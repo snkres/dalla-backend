@@ -14,7 +14,7 @@ import { ProfessionalExperienceDto } from './professional-experience.dto';
 import { ProfessionalEducationDto } from './professional-education.dto';
 import { Type } from 'class-transformer';
 
-class MetaDto {
+export class MetaDto {
   @IsPhoneNumber()
   @IsOptional()
   phone?: string;

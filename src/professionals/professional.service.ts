@@ -21,7 +21,15 @@ import {
   UpdateProfessionalExperienceDto,
 } from './dto/professional-experience.dto';
 import { ProfessionalProjectDto } from './dto/professional-project.dto';
-import { ProjectStatus, ProposalStatus } from 'prisma/client/postgres';
+import {
+  ProjectStatus,
+  ProposalStatus,
+  UserProfile,
+} from 'prisma/client/postgres';
+import {
+  calculateProfileCompletion,
+  PROJECTS_MIN_NUMBER,
+} from './utils/profile-completion.util';
 
 @Injectable()
 export class ProfessionalsService {
@@ -205,6 +213,7 @@ export class ProfessionalsService {
         include: {
           education: true,
           experience: true,
+          projects: true,
           User: {
             select: {
               id: true,
@@ -216,6 +225,12 @@ export class ProfessionalsService {
           },
         },
       });
+
+      const percentage = await this.calculateProfilePercentage(updatedProfile);
+      if (percentage !== updatedProfile.percentage) {
+        await this.updateProfilePercentage(professionalId, percentage);
+        updatedProfile.percentage = percentage;
+      }
 
       return updatedProfile;
     } catch (err) {
@@ -241,15 +256,19 @@ export class ProfessionalsService {
           create: this.mapExperienceData(onboardingData.experience),
         },
       },
-      include: { education: true, experience: true, User: true },
+      include: {
+        education: true,
+        experience: true,
+        projects: true,
+        User: true,
+      },
     });
 
-    await this.prisma.user.update({
-      where: { id: professionalId },
-      data: { onboarded: true },
-    });
+    const percentage = await this.calculateProfilePercentage(profile);
+    await this.updateProfilePercentage(professionalId, percentage);
 
     profile.User.onboarded = true;
+    profile.percentage = percentage;
     return profile;
   }
 
@@ -272,18 +291,49 @@ export class ProfessionalsService {
     }));
   }
 
+  private async calculateProfilePercentage(profile: UserProfile | string) {
+    if (typeof profile === 'string') {
+      profile = await this.getProfile(profile);
+    }
+
+    const percentage = calculateProfileCompletion(profile);
+    return percentage;
+  }
+
+  private async updateProfilePercentage(userId: string, percentage: number) {
+    return await this.prisma.userProfile.update({
+      where: { userId },
+      data: { percentage },
+    });
+  }
+
   async createProfessionalProject(
     professionalId: string,
     data: ProfessionalProjectDto,
   ) {
     const id = newId('professionalProject');
-    return this.prisma.userProject.create({
+    const project = await this.prisma.userProject.create({
       data: {
         ...data,
         id,
         UserProfile: { connect: { userId: professionalId } },
       },
+      include: {
+        UserProfile: {
+          select: {
+            projects: true,
+          },
+        },
+      },
     });
+
+    // If this is the first project, update the profile percentage
+    if (project.UserProfile.projects.length === PROJECTS_MIN_NUMBER) {
+      const percentage = await this.calculateProfilePercentage(professionalId);
+      await this.updateProfilePercentage(professionalId, percentage);
+    }
+
+    return project;
   }
 
   async updateProfessionalProject(
@@ -301,9 +351,22 @@ export class ProfessionalsService {
   }
 
   async deleteProfessionalProject(professionalId: string, projectId: string) {
-    return this.prisma.userProject.delete({
+    const project = await this.prisma.userProject.delete({
       where: { id: projectId, UserProfile: { userId: professionalId } },
+      include: {
+        UserProfile: {
+          select: {
+            projects: true,
+          },
+        },
+      },
     });
+
+    // If this was the last project, update the profile percentage
+    if (project.UserProfile.projects.length === PROJECTS_MIN_NUMBER) {
+      const percentage = await this.calculateProfilePercentage(professionalId);
+      await this.updateProfilePercentage(professionalId, percentage);
+    }
   }
 
   async getProjects(
