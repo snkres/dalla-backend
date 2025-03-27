@@ -5,6 +5,7 @@ import {
   HttpStatus,
   HttpCode,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { PlatformAuthService } from './auth.service';
 import { Response } from 'express';
@@ -16,6 +17,16 @@ import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { RegisterValidation } from './dto/register.validation';
 import setResponseCookies from './utils/set-response-cookies';
+import { AuthGuard } from './guards/auth.guard';
+import { UserTypes } from '@/shared/enums/user-types.enum';
+import {
+  CurrentCompany,
+  CurrentUser,
+} from '@/shared/decorators/current-auth.decorator';
+import { Company, User } from '@/prisma/postgres';
+import { ResetOldPasswordDto } from './dto/reset-old-password.dt';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 @Controller('auth')
 export class PlatformAuthController {
   constructor(private readonly authService: PlatformAuthService) {}
@@ -121,5 +132,69 @@ export class PlatformAuthController {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
     return ResponseUtil.success('Logged out successfully');
+  }
+
+  @UseGuards(AuthGuard())
+  @Post('reset-old-password')
+  async resetOldPassword(
+    @CurrentCompany() company: Company,
+    @CurrentUser() user: User,
+    @Body() body: ResetOldPasswordDto,
+  ) {
+    try {
+      const result = await this.authService.resetOldPassword(
+        user?.id || company?.id,
+        user?.id ? UserTypes.User : UserTypes.Company,
+        body.oldPassword,
+        body.newPassword,
+      );
+
+      return ResponseUtil.success(
+        result,
+        'Password reset successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    try {
+      const result = await this.authService.forgotPassword(body);
+
+      return ResponseUtil.success(
+        result,
+        'Password reset link sent successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    try {
+      const result = await this.authService.resetPassword(body);
+
+      return ResponseUtil.success(
+        result,
+        'Password reset successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
   }
 }

@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -15,10 +16,14 @@ import { newId } from '@/shared/utils/unique-id';
 import { RegisterValidation } from './dto/register.validation';
 import { ProfessionalRegisterDto } from './dto/register-professional.dto';
 import { Company, User } from '@/prisma/postgres';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import Redis from 'ioredis';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class PlatformAuthService {
   constructor(
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
     private readonly jwtService: JWTService,
     private readonly prisma: PostgresPrismaService,
     private readonly otpService: OTPService,
@@ -252,5 +257,97 @@ export class PlatformAuthService {
         <p>Your OTP is ${otp}</p>`,
     });
     return null;
+  }
+
+  async resetOldPassword(
+    id: string,
+    model: UserTypes,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma[model as string].findFirst({
+      where: {
+        id,
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isCorrect = await this.bycrptService.comparePassword(
+      oldPassword,
+      user.password,
+    );
+    if (!isCorrect) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    const hashedPassword = await this.bycrptService.hashPassword(newPassword);
+    await this.prisma[model as string].update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+  }
+
+  async forgotPassword(payload: ForgotPasswordDto) {
+    const { email, userType } = payload;
+
+    const user = await this.prisma[userType as string].findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const code = crypto.randomUUID();
+    await this.redisClient.set(`reset:${email}:code`, code, 'EX', 5 * 60);
+
+    await this.emailService.sendOtpEmail({
+      to: email,
+      subject: 'Reset your password',
+      html: `
+        <h1>Reset your password</h1>
+        <p>Click 
+          <a href="${process.env.FRONTEND_URL}/reset-password?email=${email}&code=${code}">
+          here</a> to reset your password
+        </p> 
+        <a>${process.env.FRONTEND_URL}/reset-password?email=${email}&code=${code}</a>
+        `,
+    });
+  }
+
+  async resetPassword(payload: ResetPasswordDto) {
+    const { email, userType, code, newPassword } = payload;
+
+    const user = await this.prisma[userType as string].findFirst({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const storedCode = await this.redisClient.getdel(`reset:${email}:code`);
+    if (storedCode !== code) {
+      throw new UnauthorizedException('Invalid code');
+    }
+
+    const hashedPassword = await this.bycrptService.hashPassword(newPassword);
+    await this.prisma[userType as string].update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
   }
 }
