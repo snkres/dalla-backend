@@ -294,7 +294,7 @@ export class PlatformAuthService {
   }
 
   async forgotPassword(payload: ForgotPasswordDto) {
-    const { email, userType } = payload;
+    const { email, userType, redirectTo } = payload;
 
     const user = await this.prisma[userType as string].findFirst({
       where: {
@@ -315,10 +315,9 @@ export class PlatformAuthService {
       html: `
         <h1>Reset your password</h1>
         <p>Click 
-          <a href="${process.env.FRONTEND_URL}/reset-password?email=${email}&code=${code}">
+          <a href="${redirectTo}?email=${email}&code=${code}">
           here</a> to reset your password
         </p> 
-        <a>${process.env.FRONTEND_URL}/reset-password?email=${email}&code=${code}</a>
         `,
     });
   }
