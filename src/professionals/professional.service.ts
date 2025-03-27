@@ -265,7 +265,10 @@ export class ProfessionalsService {
     });
 
     const percentage = await this.calculateProfilePercentage(profile);
-    await this.updateProfilePercentage(professionalId, percentage);
+    await this.prisma.userProfile.update({
+      where: { userId: professionalId },
+      data: { percentage, User: { update: { onboarded: true } } },
+    });
 
     profile.User.onboarded = true;
     profile.percentage = percentage;
