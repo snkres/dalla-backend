@@ -315,7 +315,7 @@ export class PlatformAuthService {
       html: `
         <h1>Reset your password</h1>
         <p>Click 
-          <a href="${redirectTo}?email=${email}&code=${code}">
+          <a href="${redirectTo}?email=${email}&code=${code}&mode=${userType}">
           here</a> to reset your password
         </p> 
         `,
