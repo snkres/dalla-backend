@@ -7,6 +7,7 @@ import { OTPService } from '../miscs/otp';
 import { BcryptService } from '../miscs/bcrypt';
 import { PlatformAuthController } from './auth.controller';
 import { EmailModule } from '@/shared/email/email.module';
+import { OAuth2Client } from 'google-auth-library';
 @Module({
   imports: [
     JwtModule.register({
@@ -23,6 +24,10 @@ import { EmailModule } from '@/shared/email/email.module';
     JWTService,
     OTPService,
     BcryptService,
+    {
+      provide: OAuth2Client,
+      useValue: new OAuth2Client(process.env.GOOGLE_CLIENT_ID),
+    },
   ],
 })
 export class PlatformAuthModule {}

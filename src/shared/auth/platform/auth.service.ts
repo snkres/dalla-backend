@@ -12,13 +12,16 @@ import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { OTPService } from '../miscs/otp';
 import { CompanyRegisterDto } from './dto/register-company.dto';
 import { EmailService } from '@/shared/email/email.service';
-import { newId } from '@/shared/utils/unique-id';
+import { customUUID, newId } from '@/shared/utils/unique-id';
 import { RegisterValidation } from './dto/register.validation';
 import { ProfessionalRegisterDto } from './dto/register-professional.dto';
 import { Company, User } from '@/prisma/postgres';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import Redis from 'ioredis';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { SignInWithGoogle } from './dto/SignInWithGoogle.dto';
+import { SignInWithLinkedInDto } from './dto/SignInWithLinkedIn.dto';
 
 @Injectable()
 export class PlatformAuthService {
@@ -29,7 +32,93 @@ export class PlatformAuthService {
     private readonly otpService: OTPService,
     private readonly emailService: EmailService,
     private readonly bycrptService: BcryptService,
+    private readonly GoogleOAuthClient: OAuth2Client,
   ) {}
+
+  async signInWithGoogle(params: SignInWithGoogle) {
+    const { idToken, userType } = params;
+    const ticket = await this.GoogleOAuthClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const user = await this.findOrCreateUser('google', userType, payload);
+
+    return await this.jwtService.createTokens({
+      email: user.email,
+      userId: user.id,
+      type: UserTypes.User,
+    });
+  }
+
+  async signinWithLinkedIn(params: SignInWithLinkedInDto) {
+    const { code, userType, redirectUrl } = params;
+
+    const tokens = await (
+      await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          client_id: process.env.LINKEDIN_CLIENT_ID,
+          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+          redirect_uri: redirectUrl,
+        }),
+      })
+    ).json();
+
+    const payload = await (
+      await fetch('https://api.linkedin.com/v2/userinfo', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${tokens.access_token}`,
+        },
+      })
+    ).json();
+
+    const user = await this.findOrCreateUser('linkedin', userType, payload);
+    return await this.jwtService.createTokens({
+      email: user.email,
+      userId: user.id,
+      type: UserTypes.User,
+    });
+  }
+
+  private async findOrCreateUser(
+    provider: 'google' | 'linkedin',
+    userType: UserTypes,
+    payload: TokenPayload,
+  ) {
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        email: payload.email,
+      },
+    });
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    const prefix = provider === 'google' ? 'go_' : 'li_';
+    const id =
+      prefix + newId(userType === 'user' ? 'professional' : 'company', 16);
+    const user = await this.prisma.user.create({
+      data: {
+        id,
+        email: payload.email,
+        username: payload.name,
+        verified: true,
+        name: payload.name,
+        password: await this.bycrptService.hashPassword(customUUID()),
+      },
+    });
+
+    return user;
+  }
 
   async validateCompany(email: string, pass: string) {
     const user = await this.prisma.company.findFirst({ where: { email } });

@@ -27,6 +27,8 @@ import { Company, User } from '@/prisma/postgres';
 import { ResetOldPasswordDto } from './dto/reset-old-password.dt';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SignInWithGoogle } from './dto/SignInWithGoogle.dto';
+import { SignInWithLinkedInDto } from './dto/SignInWithLinkedIn.dto';
 @Controller('auth')
 export class PlatformAuthController {
   constructor(private readonly authService: PlatformAuthService) {}
@@ -44,6 +46,49 @@ export class PlatformAuthController {
 
       setResponseCookies(res, payload);
       return ResponseUtil.success('Logged in successfully');
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Public()
+  @Post('/google')
+  async signInWithGoogle(@Body() body: SignInWithGoogle, @Res() res: Response) {
+    try {
+      const result = await this.authService.signInWithGoogle(body);
+      setResponseCookies(res, result);
+      return ResponseUtil.success(
+        null,
+        'Logged in successfully',
+        HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        err,
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  @Public()
+  @Post('/linkedin')
+  async signInWithLinkedIn(
+    @Body() body: SignInWithLinkedInDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.authService.signinWithLinkedIn(body);
+      setResponseCookies(res, result);
+      return ResponseUtil.success(
+        null,
+        'Logged in successfully',
+        HttpStatus.OK,
+      );
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
