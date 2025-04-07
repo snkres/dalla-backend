@@ -138,6 +138,7 @@ export function AuthGuard(type?: UserTypes) {
     }
 
     determineType(id: string) {
+      if (id.startsWith('go_') || id.startsWith('li_')) id = id.slice(3);
       if (id.startsWith('ck')) return UserTypes.Company;
       if (id.startsWith('pk')) return UserTypes.User;
 
