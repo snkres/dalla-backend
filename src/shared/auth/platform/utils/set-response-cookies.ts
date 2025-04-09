@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 
 export default function setResponseCookies(
   res: Response,
@@ -6,6 +6,7 @@ export default function setResponseCookies(
     refresh_token: string;
     access_token: string;
   },
+  options?: CookieOptions,
 ): void {
   res.cookie('refresh_token', payload.refresh_token, {
     httpOnly: true,
@@ -13,6 +14,7 @@ export default function setResponseCookies(
     sameSite: 'none',
     domain:
       process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
+    ...options,
   });
 
   res.cookie('access_token', payload.access_token, {
@@ -21,6 +23,7 @@ export default function setResponseCookies(
     sameSite: 'none',
     domain:
       process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
+    ...options,
   });
 
   return;

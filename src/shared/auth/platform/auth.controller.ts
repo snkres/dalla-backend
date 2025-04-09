@@ -60,7 +60,7 @@ export class PlatformAuthController {
   async signInWithGoogle(@Body() body: SignInWithGoogle, @Res() res: Response) {
     try {
       const result = await this.authService.signInWithGoogle(body);
-      setResponseCookies(res, result);
+      setResponseCookies(res, result, { secure: true });
       return ResponseUtil.success(
         null,
         'Logged in successfully',
@@ -83,7 +83,7 @@ export class PlatformAuthController {
   ) {
     try {
       const result = await this.authService.signinWithLinkedIn(body);
-      setResponseCookies(res, result);
+      setResponseCookies(res, result, { secure: true });
       return ResponseUtil.success(
         null,
         'Logged in successfully',
