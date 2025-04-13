@@ -13,8 +13,7 @@ export default function setResponseCookies(
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     // process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
-    domain: "localhost",
-    ...options,
+    // ...options,
   });
 
   res.cookie('access_token', payload.access_token, {
@@ -22,8 +21,7 @@ export default function setResponseCookies(
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     //   process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
-    domain: "localhost",
-    ...options,
+    // ...options,
   });
 
   return;
