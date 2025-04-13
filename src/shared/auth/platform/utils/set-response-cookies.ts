@@ -10,7 +10,7 @@ export default function setResponseCookies(
 ): void {
   res.cookie('refresh_token', payload.refresh_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
+    // secure: process.env.NODE_ENV !== 'development',
     domain:
       process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
     ...options,
@@ -18,7 +18,7 @@ export default function setResponseCookies(
 
   res.cookie('access_token', payload.access_token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
+    // secure: process.env.NODE_ENV !== 'development',
     domain:
       process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
     ...options,
