@@ -13,7 +13,7 @@ export default function setResponseCookies(
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     // process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
-    domain: ".dalla.app",
+    domain: "localhost",
     ...options,
   });
 
@@ -22,7 +22,7 @@ export default function setResponseCookies(
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     //   process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
-    domain: ".dalla.app",
+    domain: "localhost",
     ...options,
   });
 
