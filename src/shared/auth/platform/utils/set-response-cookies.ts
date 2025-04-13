@@ -9,8 +9,8 @@ export default function setResponseCookies(
   options?: CookieOptions,
 ): void {
   res.cookie('refresh_token', payload.refresh_token, {
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    // httpOnly: true,
+    // maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     // process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
@@ -18,8 +18,8 @@ export default function setResponseCookies(
   });
 
   res.cookie('access_token', payload.access_token, {
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    // httpOnly: true,
+    // maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     // secure: process.env.NODE_ENV !== 'development',
     // domain:
     //   process.env.NODE_ENV !== 'development' ? process.env.domain : 'localhost',
