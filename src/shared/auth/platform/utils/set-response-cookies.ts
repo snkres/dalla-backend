@@ -16,7 +16,7 @@ export default function setResponseCookies(
 
   res.cookie('access_token', payload.access_token, {
     httpOnly: true,
-    domain: '.dalla.app'
+    domain: '.dalla.app',
     ...options,
   });
 
