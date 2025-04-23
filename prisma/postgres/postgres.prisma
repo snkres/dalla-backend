@@ -176,6 +176,57 @@ model Proposal {
   professional User    @relation(fields: [professionalId], references: [id])
 }
 
+model Conversation {
+  id           String    @id @default(uuid())
+  initiatorId  String    // User who initiated the conversation
+  participantId String   // The other participant
+  title        String    // Conversation title
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  messages     Message[] // Related messages
+  
+  @@unique([initiatorId, participantId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       // Link to conversation
+  senderId       String       // Who sent the message
+  content        String       @db.Text
+  meta           Json?
+  status         Status       @default(Pending)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+}
+
+model Notifications {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType @default(EVENT)
+  title     String
+  content   String           @db.Text
+  metadata  Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+}
+
+
+enum NotificationType {
+  EVENT
+  MESSAGE
+}
+
+enum Status {
+  Pending
+  Sent
+  Delivered
+  Read
+}
+
 enum ProjectStatus {
   Open
   Closed
