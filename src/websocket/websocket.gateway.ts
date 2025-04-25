@@ -6,12 +6,14 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import Redis from 'ioredis';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
     origin: '*', //! need to be tightened in production
+    credentials: true,
   },
 })
 @Injectable()
@@ -21,18 +23,53 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
-  constructor(@Inject('REDIS_CLIENT') private readonly redisService: Redis) {}
+  constructor(
+    @Inject('REDIS_CLIENT') private readonly redisService: Redis,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
+    try {
+      // Extract token from cookies
+      const cookies = client.handshake.headers.cookie;
 
-    if (userId) {
+      if (!cookies) {
+        throw new UnauthorizedException('No cookies provided');
+      }
+
+      // Parse cookies to get access token
+      // Assuming your token cookie is named 'access_token'
+      const cookiesArray = cookies.split(';').map((cookie) => cookie.trim());
+      const tokenCookie = cookiesArray.find((c) =>
+        c.startsWith('access_token='),
+      );
+
+      if (!tokenCookie) {
+        throw new UnauthorizedException('Authentication token not found');
+      }
+
+      const token = tokenCookie.split('=')[1];
+
+      // Verify JWT token
+      const payload = await this.jwtService.verifyAsync(token);
+      const userId = payload.sub || payload.id;
+
+      if (!userId) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      // Store userId in client data for future reference
+      client.data.userId = userId;
+
       // Store connection in Redis
       await this.redisService.hset('user_connections', userId, client.id);
 
       // Join user to their room
       client.join(`user:${userId}`);
       console.log(`Client connected: ${client.id}, User: ${userId}`);
+    } catch (error) {
+      console.error(`Authentication failed: ${error.message}`);
+      client.disconnect(true);
     }
   }
 
