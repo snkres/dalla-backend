@@ -157,25 +157,6 @@ model Project {
   professional User?   @relation(fields: [assignedProfessionalId], references: [id])
 }
 
-model Proposal {
-  id               String        @id
-  projectId        String
-  professionalId   String
-  description      String
-  price            Float
-  timeline         String
-  media            String[]
-  relevantProjects UserProject[]
-
-  status    ProposalStatus @default(Pending)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  deletedAt DateTime?
-
-  project      Project @relation(fields: [projectId], references: [id])
-  professional User    @relation(fields: [professionalId], references: [id])
-}
-
 enum ProjectStatus {
   Open
   Closed
@@ -192,4 +173,93 @@ enum ProposalStatus {
 enum Gender {
   Male
   Female
+}
+
+enum ProposalType {
+  AllInOne
+  MilestoneBased
+}
+
+enum MilestoneStatus {
+  Pending
+  Changes
+  Completed
+  Rejected
+}
+
+enum SubmissionStatus {
+  Pending
+  Approved
+  Rejected
+  ChangesRequested
+}
+
+model Proposal {
+  id               String             @id
+  projectId        String
+  professionalId   String
+  description      String
+  price            Float
+  timeline         String
+  media            String[]
+  relevantProjects UserProject[]
+  type             ProposalType       @default(AllInOne)
+  milestones       Milestone[]
+  submission       ProjectSubmission?
+
+  status    ProposalStatus @default(Pending)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
+
+  project      Project @relation(fields: [projectId], references: [id])
+  professional User    @relation(fields: [professionalId], references: [id])
+}
+
+model Milestone {
+  id          String               @id
+  proposalId  String
+  title       String
+  description String
+  price       Float
+  timeline    String
+  status      MilestoneStatus      @default(Pending)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  order       Int
+  submission  MilestoneSubmission?
+
+  proposal Proposal @relation(fields: [proposalId], references: [id])
+
+  @@index([proposalId])
+}
+
+model MilestoneSubmission {
+  id          String           @id
+  milestoneId String           @unique
+  description String
+  media       String[]
+  status      SubmissionStatus @default(Pending)
+  comments    String? // Optional comments field for review feedback
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  milestone Milestone @relation(fields: [milestoneId], references: [id])
+
+  @@index([milestoneId])
+}
+
+model ProjectSubmission {
+  id          String           @id
+  proposalId  String           @unique
+  description String
+  media       String[]
+  status      SubmissionStatus @default(Pending)
+  comments    String? // Optional comments field for review feedback
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id])
+
+  @@index([proposalId])
 }
