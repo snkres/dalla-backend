@@ -1,6 +1,5 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import {
-  Milestone,
   ProjectStatus,
   Proposal,
   ProposalStatus,
@@ -74,7 +73,7 @@ export class ProposalsService {
             price: totalPrice,
             timeline: totalTimeline,
             milestones: {
-              create: milestones.map((milestone, index) => ({
+              create: milestones.map((milestone) => ({
                 id: newId('milestone'),
                 ...milestone,
               })),
@@ -279,7 +278,7 @@ export class ProposalsService {
     proposalId: string,
     data: CreateProposalValidation,
   ) {
-    const { relevantProjects, milestones: _, ...rest } = data;
+    const { relevantProjects, milestones: _, ...rest } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       return this.postgresService.proposal.update({
         where: {

@@ -11,7 +11,6 @@ import {
   ProjectStatus,
   ProposalStatus,
   ProposalType,
-  SubmissionStatus,
 } from '@/prisma/postgres';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { pagination } from 'prisma-extension-pagination';
