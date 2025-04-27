@@ -32,6 +32,9 @@ import { UserTypes } from '@/shared/enums/user-types.enum';
 import { CompanyService } from '@/companies/company.service';
 import { ProposalsService } from '@/proposals/proposals.service';
 import { GetProposalsStatisticsDto } from '@/proposals/dto/get-proposals-statistics.dto';
+import { CreateMilestoneSubmissionValidation } from '@/proposals/dto/create-milestone-submission.validation';
+import { CreateProjectSubmissionValidation } from '@/proposals/dto/create-project-submission.validation';
+import { ProjectService } from '@/projects/projects.service';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.User))
@@ -40,6 +43,7 @@ export class ProfessionalsController {
     private readonly professionalsService: ProfessionalsService,
     private readonly companyService: CompanyService,
     private readonly proposalService: ProposalsService,
+    private readonly projectService: ProjectService,
   ) {}
 
   @Post('parse-resume')
@@ -419,6 +423,68 @@ export class ProfessionalsController {
         updatedProposal,
         'Proposal deleted successfully',
         HttpStatus.OK,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Milestone submissions
+  @Post('projects/:projectId/milestones/:milestoneId/submissions')
+  async createMilestoneSubmission(
+    @CurrentUser() professional: User,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Param('milestoneId', new IdValidationPipe('milestone'))
+    milestoneId: string,
+    @Body() data: CreateMilestoneSubmissionValidation,
+  ) {
+    try {
+      const submission = await this.projectService.createMilestoneSubmission(
+        professional.id,
+        milestoneId,
+        data,
+      );
+      return ResponseUtil.success(
+        submission,
+        'Milestone submission created successfully',
+        201,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Project submissions
+  @Post('projects/:projectId/submissions')
+  async createProjectSubmission(
+    @CurrentUser() professional: User,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Body() data: CreateProjectSubmissionValidation,
+  ) {
+    try {
+      const submission = await this.projectService.createProjectSubmission(
+        professional.id,
+        projectId,
+        data,
+      );
+      return ResponseUtil.success(
+        submission,
+        'Project submission created successfully',
+        201,
       );
     } catch (err) {
       throw new CustomHttpException(

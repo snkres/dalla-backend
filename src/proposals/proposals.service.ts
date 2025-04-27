@@ -1,6 +1,12 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
-import { ProjectStatus, Proposal, ProposalStatus } from '@/prisma/postgres';
+import {
+  ProjectStatus,
+  Proposal,
+  ProposalStatus,
+  ProposalType,
+} from '@/prisma/postgres';
 import { CreateProposalValidation } from '@/proposals/dto/create-proposal.validation';
+import { CreateMilestoneValidation } from '@/proposals/dto/create-milestone.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { ProposalStatistics } from '@/shared/types/proposal.types';
 import { newId } from '@/shared/utils/unique-id';
@@ -21,7 +27,8 @@ export class ProposalsService {
     data: CreateProposalValidation,
   ) {
     const id = newId('proposal');
-    const { relevantProjects, ...rest } = data;
+    const { relevantProjects, milestones, type, ...rest } = data;
+
     try {
       const proposals = await this.postgresService.proposal.findMany({
         where: {
@@ -34,24 +41,54 @@ export class ProposalsService {
         throw new BadRequestException('Proposal already exists');
       }
 
-      return this.postgresService.proposal.create({
-        data: {
-          id,
-          ...rest,
-          professional: {
-            connect: {
-              id: professionalId,
-            },
-          },
-          project: {
-            connect: {
-              id: projectId,
-            },
-          },
-          relevantProjects: {
-            connect: relevantProjects.map((projectId) => ({ id: projectId })),
+      const baseCreateData = {
+        id,
+        type,
+        description: rest.description,
+        media: rest.media,
+        price: rest.price,
+        timeline: rest.timeline,
+        professional: {
+          connect: {
+            id: professionalId,
           },
         },
+        project: {
+          connect: {
+            id: projectId,
+          },
+        },
+        relevantProjects: {
+          connect: relevantProjects.map((projectId) => ({ id: projectId })),
+        },
+      };
+
+      if (type === ProposalType.MilestoneBased) {
+        const totalPrice = milestones.reduce((sum, m) => sum + m.price, 0);
+        const totalTimeline = this.calculateTotalTimeline(milestones);
+
+        return this.postgresService.proposal.create({
+          data: {
+            ...baseCreateData,
+            price: totalPrice,
+            timeline: totalTimeline,
+            milestones: {
+              create: milestones.map((milestone) => ({
+                id: newId('milestone'),
+                ...milestone,
+              })),
+            },
+          },
+          include: {
+            professional: true,
+            project: true,
+            milestones: true,
+          },
+        });
+      }
+
+      return this.postgresService.proposal.create({
+        data: baseCreateData,
         include: {
           professional: true,
           project: true,
@@ -65,6 +102,43 @@ export class ProposalsService {
       }
       throw error;
     }
+  }
+
+  private calculateTotalTimeline(
+    milestones: CreateMilestoneValidation[],
+  ): string {
+    let totalDays = 0;
+
+    milestones.forEach((milestone) => {
+      // It's guaranteed that timeline is in the format "{number} {unit}"
+      const [amount, unit] = milestone.timeline.split(' ');
+      const numericAmount = parseInt(amount, 10);
+
+      switch (unit.toLowerCase()) {
+        case 'day':
+          totalDays += numericAmount;
+          break;
+        case 'week':
+          totalDays += numericAmount * 7;
+          break;
+        case 'month':
+          totalDays += numericAmount * 30;
+          break;
+      }
+    });
+
+    // Convert total days to the most appropriate unit
+    if (totalDays >= 60) {
+      // Use months for 60+ days
+      const months = Math.ceil(totalDays / 30);
+      return `${months} month${months > 1 ? 's' : ''}`;
+    } else if (totalDays >= 14) {
+      // Use weeks for 14+ days
+      const weeks = Math.ceil(totalDays / 7);
+      return `${weeks} week${weeks > 1 ? 's' : ''}`;
+    }
+    // Use days for anything less than 2 weeks
+    return `${totalDays} day${totalDays > 1 ? 's' : ''}`;
   }
 
   async findProposalsByProjectId(
@@ -187,6 +261,7 @@ export class ProposalsService {
           },
         },
         relevantProjects: true,
+        milestones: true,
       },
     });
 
@@ -203,7 +278,7 @@ export class ProposalsService {
     proposalId: string,
     data: CreateProposalValidation,
   ) {
-    const { relevantProjects, ...rest } = data;
+    const { relevantProjects, milestones: _, ...rest } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
     try {
       return this.postgresService.proposal.update({
         where: {
@@ -255,6 +330,7 @@ export class ProposalsService {
           },
           include: {
             relevantProjects: true,
+            milestones: true,
           },
         });
       } catch (err) {
@@ -270,7 +346,7 @@ export class ProposalsService {
         await this.connectProfessionalToProject(
           proposal.projectId,
           proposal.professionalId,
-          proposal as Proposal,
+          proposal,
         );
 
         await this.rejectOtherProposals(proposal.projectId, proposalId);
@@ -284,6 +360,12 @@ export class ProposalsService {
     professionalId: string,
     proposal: Proposal,
   ) {
+    const meta: any = {
+      budget: proposal.price,
+      timeline: proposal.timeline,
+      startedAt: new Date(),
+    };
+
     return this.postgresService.project.update({
       where: {
         id: projectId,
@@ -291,11 +373,7 @@ export class ProposalsService {
       },
       data: {
         status: ProjectStatus.InProgress,
-        meta: {
-          budget: proposal.price,
-          timeline: proposal.timeline,
-          startedAt: new Date(),
-        },
+        meta,
         professional: {
           connect: {
             id: professionalId,

@@ -25,6 +25,7 @@ import { IdValidationPipe } from '@/shared/pipes/id-validation.pipe';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 import { ProfessionalsService } from '@/professionals/professional.service';
+import { ReviewMilestoneSubmissionValidation } from '@/proposals/dto/review-milestone-submission.validation';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.Company))
@@ -374,6 +375,72 @@ export class CompanyController {
       return ResponseUtil.success(
         updatedProposal,
         'Proposal updated successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Milestone submission review
+  @Patch(
+    'projects/:projectId/milestones/:milestoneId/submissions/:submissionId/review',
+  )
+  async reviewMilestoneSubmission(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Param('milestoneId', new IdValidationPipe('milestone'))
+    milestoneId: string,
+    @Param('submissionId', new IdValidationPipe('submission'))
+    submissionId: string,
+    @Body() review: ReviewMilestoneSubmissionValidation,
+  ) {
+    try {
+      const submission = await this.companyService.reviewMilestoneSubmission(
+        company.id,
+        submissionId,
+        review,
+      );
+      return ResponseUtil.success(
+        submission,
+        'Milestone submission reviewed successfully',
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Project submission review
+  @Patch('projects/:projectId/submissions/:submissionId/review')
+  async reviewProjectSubmission(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Param('submissionId', new IdValidationPipe('submission'))
+    submissionId: string,
+    @Body() review: ReviewMilestoneSubmissionValidation,
+  ) {
+    try {
+      const submission = await this.companyService.reviewProjectSubmission(
+        company.id,
+        submissionId,
+        review,
+      );
+      return ResponseUtil.success(
+        submission,
+        'Project submission reviewed successfully',
       );
     } catch (err) {
       throw new CustomHttpException(

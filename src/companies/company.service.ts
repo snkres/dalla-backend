@@ -8,6 +8,7 @@ import { createProjectValidation } from '@/projects/validation/create-project.va
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { ProjectStatus, ProposalStatus } from '@/prisma/postgres';
 import { ProposalsService } from '@/proposals/proposals.service';
+import { ReviewMilestoneSubmissionValidation } from '@/proposals/dto/review-milestone-submission.validation';
 
 @Injectable()
 export class CompanyService {
@@ -237,5 +238,29 @@ export class CompanyService {
     );
     //? fires notifications from the service itself
     return project;
+  }
+
+  async reviewMilestoneSubmission(
+    companyId: string,
+    submissionId: string,
+    review: ReviewMilestoneSubmissionValidation,
+  ) {
+    return this.projectService.reviewMilestoneSubmission(
+      companyId,
+      submissionId,
+      review,
+    );
+  }
+
+  async reviewProjectSubmission(
+    companyId: string,
+    submissionId: string,
+    review: ReviewMilestoneSubmissionValidation,
+  ) {
+    return this.projectService.reviewProjectSubmission(
+      companyId,
+      submissionId,
+      review,
+    );
   }
 }
