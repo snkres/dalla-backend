@@ -114,6 +114,21 @@ export class ProjectService {
                 meta: true,
               },
             },
+            proposals: {
+              where: {
+                deletedAt: null,
+                projectId: id,
+              },
+              orderBy: { createdAt: 'desc' },
+              include: {
+                milestones: {
+                  orderBy: { order: 'asc' },
+                  include: {
+                    submission: true,
+                  },
+                },
+              },
+            },
           },
         },
         proposals: {
@@ -132,19 +147,12 @@ export class ProjectService {
                     meta: true,
                   },
                 },
-                proposals: {
-                  where: {
-                    deletedAt: null,
-                  },
-                  include: {
-                    milestones: {
-                      orderBy: { order: 'asc' },
-                      include: {
-                        submission: true,
-                      },
-                    },
-                  },
-                },
+              },
+            },
+            milestones: {
+              orderBy: { order: 'asc' },
+              include: {
+                submission: true,
               },
             },
           },
