@@ -3,6 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { Job } from 'bull';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
+import { NotificationResponseDto } from './dto';
+
+interface SendNotificationJobData {
+  notificationId: string;
+}
 
 @Injectable()
 @Processor('notifications')
@@ -13,7 +18,7 @@ export class NotificationProcessor {
   ) {}
 
   @Process('send')
-  async handleSendNotification(job: Job<{ notificationId: string }>) {
+  async handleSendNotification(job: Job<SendNotificationJobData>) {
     const { notificationId } = job.data;
 
     try {
@@ -28,7 +33,7 @@ export class NotificationProcessor {
       // Send notification to user
       this.websocketGateway.sendNotificationToUser(
         notification.userId,
-        notification,
+        notification as NotificationResponseDto,
       );
 
       return { success: true, notificationId };

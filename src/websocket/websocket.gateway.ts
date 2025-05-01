@@ -10,6 +10,9 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import Redis from 'ioredis';
 import { JwtService } from '@nestjs/jwt';
 
+// Import our new notification type
+import { NotificationResponseDto } from '../notification/dto';
+
 @WebSocketGateway({
   cors: {
     origin: '*', //! need to be tightened in production
@@ -139,8 +142,11 @@ export class WebsocketGateway
     this.server.to(`conversation:${conversationId}`).emit(eventName, data);
   }
 
-  // Method to send notification to specific user
-  sendNotificationToUser(userId: string, notification: any) {
+  // Updated method with strong typing for notification
+  sendNotificationToUser(
+    userId: string,
+    notification: NotificationResponseDto,
+  ) {
     this.server.to(`user:${userId}`).emit('notification', notification);
   }
 }
