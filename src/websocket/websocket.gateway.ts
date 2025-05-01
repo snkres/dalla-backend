@@ -30,35 +30,34 @@ export class WebsocketGateway
 
   async handleConnection(client: Socket) {
     try {
-      // Extract token from cookies
+      // Try to get token from multiple sources
+      let token: string;
+
       const cookies = client.handshake.headers.cookie;
-
-      if (!cookies) {
-        throw new UnauthorizedException('No cookies provided');
+      if (cookies) {
+        const cookiesArray = cookies.split(';').map((cookie) => cookie.trim());
+        const tokenCookie = cookiesArray.find((c) =>
+          c.startsWith('access_token='),
+        );
+        if (tokenCookie) {
+          token = tokenCookie.split('=')[1];
+        }
       }
 
-      // Parse cookies to get access token
-      // Assuming your token cookie is named 'access_token'
-      const cookiesArray = cookies.split(';').map((cookie) => cookie.trim());
-      const tokenCookie = cookiesArray.find((c) =>
-        c.startsWith('access_token='),
-      );
-
-      if (!tokenCookie) {
-        throw new UnauthorizedException('Authentication token not found');
+      if (!token) {
+        throw new UnauthorizedException('No authentication token provided');
       }
-
-      const token = tokenCookie.split('=')[1];
 
       // Verify JWT token
       const payload = await this.jwtService.verifyAsync(token);
-      const userId = payload.sub || payload.id;
+      const userId = payload.userId;
 
       if (!userId) {
-        throw new UnauthorizedException('Invalid token');
+        throw new UnauthorizedException('Invalid token: no user ID found');
       }
 
       // Store userId in client data for future reference
+      client.data = client.data || {}; // Ensure client.data exists
       client.data.userId = userId;
 
       // Store connection in Redis
@@ -74,7 +73,7 @@ export class WebsocketGateway
   }
 
   async handleDisconnect(client: Socket) {
-    const userId = client.handshake.query.userId as string;
+    const userId = client.data.userId as string;
 
     if (userId) {
       // Remove connection from Redis
@@ -85,11 +84,20 @@ export class WebsocketGateway
 
   @SubscribeMessage('join-conversation')
   handleJoinConversation(client: Socket, payload: { conversationId: string }) {
-    const userId = client.handshake.query.userId as string;
+    const userId = client.data?.userId;
+
+    if (!userId) {
+      return {
+        event: 'error',
+        data: { message: 'User not authenticated' },
+      };
+    }
+
     // Join a room specific to this conversation
     const roomName = `conversation:${payload.conversationId}`;
     client.join(roomName);
     console.log(`User ${userId} joined conversation room ${roomName}`);
+
     return {
       event: 'joined-conversation',
       data: { conversationId: payload.conversationId },
@@ -98,8 +106,19 @@ export class WebsocketGateway
 
   @SubscribeMessage('leave-conversation')
   handleLeaveConversation(client: Socket, payload: { conversationId: string }) {
+    const userId = client.data?.userId;
+
+    if (!userId) {
+      return {
+        event: 'error',
+        data: { message: 'User not authenticated' },
+      };
+    }
+
     const roomName = `conversation:${payload.conversationId}`;
     client.leave(roomName);
+    console.log(`User ${userId} left conversation room ${roomName}`);
+
     return {
       event: 'left-conversation',
       data: { conversationId: payload.conversationId },

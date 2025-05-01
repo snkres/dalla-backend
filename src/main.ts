@@ -5,7 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { Logger as pinoLogger } from 'nestjs-pino';
 import { AllExceptionFilter } from './shared/filters/all-exception.filter';
 import { AllSuccessResponseFilter } from './shared/filters/all-success.filter';
-import { WsAdapter } from '@nestjs/platform-ws';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -31,7 +31,7 @@ async function bootstrap() {
 
   app.useLogger(app.get(pinoLogger));
   app.use(cookieParser());
-  app.useWebSocketAdapter(new WsAdapter(app));
+  app.useWebSocketAdapter(new IoAdapter(app));
   app.enableCors(corsOption);
   app.useGlobalFilters(new AllExceptionFilter());
   app.useGlobalInterceptors(new AllSuccessResponseFilter());
