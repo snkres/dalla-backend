@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import {
@@ -17,6 +18,7 @@ import { Prisma } from '@/prisma/postgres';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 import { CurrentUnifiedAuth } from '@/shared/decorators/current-auth.decorator';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
 
 @Controller('notifications')
 @UseGuards(AuthGuard(UserTypes.User), AuthGuard(UserTypes.Company))
@@ -41,15 +43,20 @@ export class NotificationController {
   @Get('')
   async getNotificationsByUser(
     @CurrentUnifiedAuth() user: any,
-  ): Promise<NotificationResponseDto[]> {
-    return this.notificationService.getNotificationsByUser(user.id);
+    @Query() options: PaginationDto,
+  ) {
+    return this.notificationService.getNotificationsByUser(user.id, options);
   }
 
   @Get('unread')
   async getUnreadNotificationsByUser(
     @CurrentUnifiedAuth() user: any,
-  ): Promise<NotificationResponseDto[]> {
-    return this.notificationService.getUnreadNotificationsByUser(user.id);
+    @Query() options: PaginationDto,
+  ) {
+    return this.notificationService.getUnreadNotificationsByUser(
+      user.id,
+      options,
+    );
   }
 
   @Patch(':id/read')

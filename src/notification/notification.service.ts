@@ -9,6 +9,7 @@ import {
   CreateNotificationDto,
   NotificationResponseDto,
 } from './dto';
+import { PaginationDto } from '@/shared/dto/pagination.dto';
 
 @Injectable()
 export class NotificationService {
@@ -55,25 +56,24 @@ export class NotificationService {
     });
   }
 
-  async getNotificationsByUser(
-    userId: string,
-  ): Promise<NotificationResponseDto[]> {
-    return this.prisma.notifications.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    }) as Promise<NotificationResponseDto[]>;
+  async getNotificationsByUser(userId: string, options: PaginationDto) {
+    return await this.prisma
+      .pagination()
+      .notifications.paginate({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      })
+      .withPages(options);
   }
 
-  async getUnreadNotificationsByUser(
-    userId: string,
-  ): Promise<NotificationResponseDto[]> {
-    return this.prisma.notifications.findMany({
-      where: {
-        userId,
-        isRead: false,
-      },
-      orderBy: { createdAt: 'desc' },
-    }) as Promise<NotificationResponseDto[]>;
+  async getUnreadNotificationsByUser(userId: string, options: PaginationDto) {
+    return await this.prisma
+      .pagination()
+      .notifications.paginate({
+        where: { userId, isRead: false },
+        orderBy: { createdAt: 'desc' },
+      })
+      .withPages(options);
   }
 
   async markAsRead(id: string): Promise<NotificationResponseDto> {
