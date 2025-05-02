@@ -16,12 +16,12 @@ import {
 } from './dto';
 import { Prisma } from '@/prisma/postgres';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
-import { UserTypes } from '@/shared/enums/user-types.enum';
 import { CurrentUnifiedAuth } from '@/shared/decorators/current-auth.decorator';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
+import { ResponseUtil } from '@/shared/utils/response.util';
 
 @Controller('notifications')
-@UseGuards(AuthGuard(UserTypes.User), AuthGuard(UserTypes.Company))
+@UseGuards(AuthGuard())
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
   // for Admins
@@ -45,7 +45,14 @@ export class NotificationController {
     @CurrentUnifiedAuth() user: any,
     @Query() options: PaginationDto,
   ) {
-    return this.notificationService.getNotificationsByUser(user.id, options);
+    const notifications = await this.notificationService.getNotificationsByUser(
+      user.id,
+      options,
+    );
+    return ResponseUtil.success(
+      notifications,
+      'Notifications fetched successfully',
+    );
   }
 
   @Get('unread')

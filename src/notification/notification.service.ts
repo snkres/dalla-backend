@@ -57,23 +57,31 @@ export class NotificationService {
   }
 
   async getNotificationsByUser(userId: string, options: PaginationDto) {
-    return await this.prisma
+    const [items, meta] = await this.prisma
       .pagination()
       .notifications.paginate({
         where: { userId },
         orderBy: { createdAt: 'desc' },
       })
       .withPages(options);
+    return {
+      items,
+      meta,
+    };
   }
 
   async getUnreadNotificationsByUser(userId: string, options: PaginationDto) {
-    return await this.prisma
+    const [items, meta] = await this.prisma
       .pagination()
       .notifications.paginate({
         where: { userId, isRead: false },
         orderBy: { createdAt: 'desc' },
       })
       .withPages(options);
+    return {
+      items,
+      meta,
+    };
   }
 
   async markAsRead(id: string): Promise<NotificationResponseDto> {
