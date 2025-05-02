@@ -14,7 +14,6 @@ import {
   CreateMessageNotificationDto,
   NotificationResponseDto,
 } from './dto';
-import { Prisma } from '@/prisma/postgres';
 import { AuthGuard } from '@/shared/auth/platform/guards/auth.guard';
 import { CurrentUnifiedAuth } from '@/shared/decorators/current-auth.decorator';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
@@ -60,21 +59,32 @@ export class NotificationController {
     @CurrentUnifiedAuth() user: any,
     @Query() options: PaginationDto,
   ) {
-    return this.notificationService.getUnreadNotificationsByUser(
-      user.id,
-      options,
+    const notifications =
+      await this.notificationService.getUnreadNotificationsByUser(
+        user.id,
+        options,
+      );
+    return ResponseUtil.success(
+      notifications,
+      'Unread notifications fetched successfully',
     );
   }
 
   @Patch(':id/read')
-  async markAsRead(@Param('id') id: string): Promise<NotificationResponseDto> {
-    return this.notificationService.markAsRead(id);
+  async markAsRead(@Param('id') id: string) {
+    const notification = await this.notificationService.markAsRead(id);
+    return ResponseUtil.success(
+      notification,
+      'Notification marked as read successfully',
+    );
   }
 
   @Patch('read-all')
-  async markAllAsRead(
-    @CurrentUnifiedAuth() user: any,
-  ): Promise<Prisma.BatchPayload> {
-    return this.notificationService.markAllAsRead(user.id);
+  async markAllAsRead(@CurrentUnifiedAuth() user: any) {
+    const result = await this.notificationService.markAllAsRead(user.id);
+    return ResponseUtil.success(
+      result,
+      'All notifications marked as read successfully',
+    );
   }
 }
