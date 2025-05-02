@@ -1,4 +1,5 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
+import { NotificationService } from '@/notification/notification.service';
 import {
   ProjectStatus,
   Proposal,
@@ -19,7 +20,10 @@ import { pagination } from 'prisma-extension-pagination';
 
 @Injectable()
 export class ProposalsService {
-  constructor(private readonly postgresService: PostgresPrismaService) {}
+  constructor(
+    private readonly postgresService: PostgresPrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async createProposal(
     professionalId: string,
@@ -329,6 +333,7 @@ export class ProposalsService {
             status,
           },
           include: {
+            project: true,
             relevantProjects: true,
             milestones: true,
           },
@@ -351,6 +356,17 @@ export class ProposalsService {
 
         await this.rejectOtherProposals(proposal.projectId, proposalId);
       }
+
+      await this.notificationService.notify({
+        userId: proposal.professionalId,
+        type: 'EVENT',
+        metadata: {
+          type: 'PROPOSAL',
+          professionalId: proposal.professionalId,
+        },
+        title: `Your proposal for ${'need to match the project name'} was ${status}`,
+        content: 'Check your dashboard for more details',
+      });
       return proposal;
     });
   }

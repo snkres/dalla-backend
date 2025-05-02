@@ -8,6 +8,7 @@ import { createProjectValidation } from '@/projects/validation/create-project.va
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { ProjectStatus, ProposalStatus } from '@/prisma/postgres';
 import { ProposalsService } from '@/proposals/proposals.service';
+import { NotificationService } from '@/notification/notification.service';
 import { ReviewMilestoneSubmissionValidation } from '@/proposals/dto/review-milestone-submission.validation';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class CompanyService {
     private readonly prisma: PostgresPrismaService,
     private readonly projectService: ProjectService,
     private readonly proposalService: ProposalsService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {

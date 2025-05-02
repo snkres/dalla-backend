@@ -10,9 +10,10 @@ import { JWTService } from '@/shared/auth/miscs/jwt';
 import { ProjectService } from '@/projects/projects.service';
 import { ProposalsService } from '@/proposals/proposals.service';
 import { CompanyService } from '@/companies/company.service';
+import { NotificationModule } from '@/notification/notification.module';
 
 @Module({
-  imports: [PlatformAuthModule, ConfigModule],
+  imports: [PlatformAuthModule, ConfigModule, NotificationModule],
   providers: [
     PostgresPrismaService,
     ProfessionalsService,

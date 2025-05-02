@@ -14,6 +14,10 @@ import { ProjectModule } from './projects/projects.module';
 import DigitalOceanConfig from './shared/config/object-storage.config';
 import { ObjectStorageModule } from './shared/upload/object-storage.module';
 import { ProposalsModule } from './proposals/proposals.module';
+import { MessageModule } from './message/message.module';
+import { NotificationModule } from './notification/notification.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { ConversationModule } from './conversation/conversation.module';
 
 @Module({
   imports: [
@@ -45,6 +49,10 @@ import { ProposalsModule } from './proposals/proposals.module';
     ProfessionalModule,
     ProjectModule,
     CompanyModule,
+    NotificationModule,
+    MessageModule,
+    WebsocketModule,
+    ConversationModule,
     RouterModule.register([
       {
         path: 'professionals',
