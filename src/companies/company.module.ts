@@ -9,9 +9,10 @@ import { ProposalsModule } from '@/proposals/proposals.module';
 import { ProfessionalsService } from '@/professionals/professional.service';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ObjectStorageService } from '@/shared/upload/object-storage.service';
+import { NotificationModule } from '@/notification/notification.module';
 
 @Module({
-  imports: [PlatformAuthModule, ProposalsModule],
+  imports: [PlatformAuthModule, ProposalsModule, NotificationModule],
   controllers: [CompanyController],
   providers: [
     CompanyService,

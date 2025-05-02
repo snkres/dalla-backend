@@ -13,3 +13,10 @@ export const CurrentCompany = createParamDecorator(
     return request.company;
   },
 );
+
+export const CurrentUnifiedAuth = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.user || request.company;
+  },
+);

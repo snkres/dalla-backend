@@ -4,6 +4,7 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { NotificationProcessor } from './notification.processor';
 import { WebsocketModule } from '../websocket/websocket.module';
+import { JWTService } from '@/shared/auth/miscs/jwt';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { WebsocketModule } from '../websocket/websocket.module';
     }),
     WebsocketModule,
   ],
-  providers: [NotificationService, NotificationProcessor],
+  providers: [NotificationService, NotificationProcessor, JWTService],
   controllers: [NotificationController],
   exports: [NotificationService],
 })

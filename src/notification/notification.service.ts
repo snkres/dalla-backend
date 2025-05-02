@@ -18,9 +18,7 @@ export class NotificationService {
     private notificationsQueue: Queue,
   ) {}
 
-  async createNotification(
-    data: CreateNotificationDto,
-  ): Promise<NotificationResponseDto> {
+  async notify(data: CreateNotificationDto): Promise<NotificationResponseDto> {
     const notification = await this.prisma.notifications.create({
       data: {
         userId: data.userId,
@@ -42,7 +40,7 @@ export class NotificationService {
   async createEventNotification(
     data: CreateEventNotificationDto,
   ): Promise<NotificationResponseDto> {
-    return this.createNotification({
+    return this.notify({
       ...data,
       type: NotificationType.EVENT,
     });
@@ -51,7 +49,7 @@ export class NotificationService {
   async createMessageNotification(
     data: CreateMessageNotificationDto,
   ): Promise<NotificationResponseDto> {
-    return this.createNotification({
+    return this.notify({
       ...data,
       type: NotificationType.MESSAGE,
     });
