@@ -1,12 +1,24 @@
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { newId } from '@/shared/utils/unique-id';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { createProjectValidation } from './validation/create-project.validation';
-import { ProjectStatus } from '@/prisma/postgres';
+import {
+  MilestoneStatus,
+  ProjectStatus,
+  ProposalStatus,
+  ProposalType,
+} from '@/prisma/postgres';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { pagination } from 'prisma-extension-pagination';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { FilterProjectsOptions } from '@/shared/types/project.types';
+import { ReviewMilestoneSubmissionValidation } from '@/proposals/dto/review-milestone-submission.validation';
+import { CreateMilestoneSubmissionValidation } from '@/proposals/dto/create-milestone-submission.validation';
+import { CreateProjectSubmissionValidation } from '@/proposals/dto/create-project-submission.validation';
 
 @Injectable()
 export class ProjectService {
@@ -102,6 +114,21 @@ export class ProjectService {
                 meta: true,
               },
             },
+            proposals: {
+              where: {
+                deletedAt: null,
+                projectId: id,
+              },
+              orderBy: { createdAt: 'desc' },
+              include: {
+                milestones: {
+                  orderBy: { order: 'asc' },
+                  include: {
+                    submission: true,
+                  },
+                },
+              },
+            },
           },
         },
         proposals: {
@@ -120,6 +147,12 @@ export class ProjectService {
                     meta: true,
                   },
                 },
+              },
+            },
+            milestones: {
+              orderBy: { order: 'asc' },
+              include: {
+                submission: true,
               },
             },
           },
@@ -176,6 +209,14 @@ export class ProjectService {
           },
           proposals: {
             where: { professionalId },
+            include: {
+              milestones: {
+                orderBy: { order: 'asc' },
+                include: {
+                  submission: true,
+                },
+              },
+            },
           },
         },
       })
@@ -221,6 +262,12 @@ export class ProjectService {
                   },
                 },
               },
+              milestones: {
+                orderBy: { order: 'asc' },
+                include: {
+                  submission: true,
+                },
+              },
             },
           },
         },
@@ -254,7 +301,18 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
-          proposals: true,
+          proposals: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              milestones: {
+                orderBy: { order: 'asc' },
+                include: {
+                  submission: true,
+                },
+              },
+            },
+          },
         },
       })
       .withPages({
@@ -341,5 +399,162 @@ export class ProjectService {
       }
       throw err;
     }
+  }
+
+  async createProjectSubmission(
+    professionalId: string,
+    projectId: string,
+    data: CreateProjectSubmissionValidation,
+  ) {
+    return this.postgresService.$transaction(async (tx) => {
+      // First verify that the professional owns an accepted proposal for this project
+      const proposal = await tx.proposal.findFirst({
+        where: {
+          projectId,
+          professionalId,
+          type: ProposalType.AllInOne,
+          status: ProposalStatus.Accepted,
+        },
+      });
+
+      if (!proposal) {
+        throw new NotFoundException(
+          'No accepted proposal found for this project',
+        );
+      }
+
+      // Create the submission
+      return tx.projectSubmission.create({
+        data: {
+          id: newId('submission'),
+          description: data.description,
+          media: data.media,
+          proposal: {
+            connect: {
+              id: proposal.id,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  async createMilestoneSubmission(
+    professionalId: string,
+    milestoneId: string,
+    data: CreateMilestoneSubmissionValidation,
+  ) {
+    return this.postgresService.$transaction(async (tx) => {
+      // First verify that the professional owns this milestone through an accepted proposal
+      const milestone = await tx.milestone.findFirst({
+        where: {
+          id: milestoneId,
+          proposal: {
+            professionalId,
+            type: ProposalType.MilestoneBased,
+            status: ProposalStatus.Accepted,
+          },
+        },
+      });
+
+      if (!milestone) {
+        throw new NotFoundException('Milestone not found');
+      }
+
+      if (milestone.status !== MilestoneStatus.Pending) {
+        throw new BadRequestException(
+          'Can only submit deliverables for pending milestones',
+        );
+      }
+
+      // Create the submission
+      return tx.milestoneSubmission.create({
+        data: {
+          id: newId('submission'),
+          description: data.description,
+          media: data.media,
+          milestone: {
+            connect: {
+              id: milestoneId,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  async reviewMilestoneSubmission(
+    companyId: string,
+    submissionId: string,
+    data: ReviewMilestoneSubmissionValidation,
+  ) {
+    return this.postgresService.$transaction(async (tx) => {
+      // Find submission and verify ownership through project
+      const submission = await tx.milestoneSubmission.findFirst({
+        where: {
+          id: submissionId,
+          milestone: {
+            proposal: {
+              project: {
+                companyId,
+              },
+            },
+          },
+        },
+        include: {
+          milestone: true,
+        },
+      });
+
+      if (!submission) {
+        throw new NotFoundException('Submission not found');
+      }
+
+      // Update submission status and comments
+      const updatedSubmission = await tx.milestoneSubmission.update({
+        where: { id: submissionId },
+        data: {
+          status: data.status,
+          comments: data.comments,
+        },
+      });
+
+      return updatedSubmission;
+    });
+  }
+
+  async reviewProjectSubmission(
+    companyId: string,
+    submissionId: string,
+    data: ReviewMilestoneSubmissionValidation,
+  ) {
+    return this.postgresService.$transaction(async (tx) => {
+      // Find submission and verify ownership through project
+      const submission = await tx.projectSubmission.findFirst({
+        where: {
+          id: submissionId,
+          proposal: {
+            project: {
+              companyId,
+            },
+          },
+        },
+        include: {
+          proposal: true,
+        },
+      });
+
+      if (!submission) {
+        throw new NotFoundException('Submission not found');
+      }
+
+      // Update submission status and comments
+      const updatedSubmission = await tx.projectSubmission.update({
+        where: { id: submissionId },
+        data,
+      });
+
+      return updatedSubmission;
+    });
   }
 }

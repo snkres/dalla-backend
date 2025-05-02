@@ -105,7 +105,8 @@ export class PlatformAuthService {
 
     const prefix = provider === 'google' ? 'go_' : 'li_';
     const id =
-      prefix + newId(userType === UserTypes.User ? 'professional' : 'company', 16);
+      prefix +
+      newId(userType === UserTypes.User ? 'professional' : 'company', 16);
     const user = await this.prisma.user.create({
       data: {
         id,
