@@ -268,13 +268,6 @@ enum Status {
   Read
 }
 
-enum ProjectStatus {
-  Open
-  Closed
-  InProgress
-  Completed
-}
-
 model Milestone {
   id          String               @id
   proposalId  String
