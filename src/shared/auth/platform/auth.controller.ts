@@ -174,8 +174,8 @@ export class PlatformAuthController {
 
   @Post('logout')
   async logout(@Res() res: Response) {
-    res.clearCookie('access_token', { domain: ".dalla.app" });
-    res.clearCookie('refresh_token', { domain: ".dalla.app" });
+    res.clearCookie('access_token', { domain: '.dalla.app' });
+    res.clearCookie('refresh_token', { domain: '.dalla.app' });
     return ResponseUtil.success('Logged out successfully');
   }
 
