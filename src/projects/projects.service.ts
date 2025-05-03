@@ -71,6 +71,7 @@ export class ProjectService {
         scope: true,
         status: true,
         media: true,
+        submissions: true,
         _count: {
           select: {
             proposals: {
@@ -124,7 +125,7 @@ export class ProjectService {
                 milestones: {
                   orderBy: { order: 'asc' },
                   include: {
-                    submission: true,
+                    submissions: true,
                   },
                 },
               },
@@ -152,7 +153,7 @@ export class ProjectService {
             milestones: {
               orderBy: { order: 'asc' },
               include: {
-                submission: true,
+                submissions: true,
               },
             },
           },
@@ -192,6 +193,7 @@ export class ProjectService {
           skills: true,
           meta: true,
           createdAt: true,
+          submissions: true,
           company: {
             select: {
               id: true,
@@ -213,7 +215,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -244,6 +246,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
+          submissions: true,
           proposals: {
             where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
@@ -265,7 +268,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -301,6 +304,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
+          submissions: true,
           proposals: {
             where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
@@ -308,7 +312,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -429,9 +433,9 @@ export class ProjectService {
           id: newId('submission'),
           description: data.description,
           media: data.media,
-          proposal: {
+          project: {
             connect: {
-              id: proposal.id,
+              id: projectId,
             },
           },
         },
@@ -488,39 +492,39 @@ export class ProjectService {
     submissionId: string,
     data: ReviewMilestoneSubmissionValidation,
   ) {
-    return this.postgresService.$transaction(async (tx) => {
-      // Find submission and verify ownership through project
-      const submission = await tx.milestoneSubmission.findFirst({
-        where: {
-          id: submissionId,
-          milestone: {
-            proposal: {
-              project: {
-                companyId,
+    try {
+      // Update submission status and comments
+      const updatedSubmission =
+        await this.postgresService.milestoneSubmission.update({
+          where: {
+            id: submissionId,
+            milestone: {
+              proposal: {
+                project: {
+                  companyId,
+                },
               },
             },
           },
-        },
-        include: {
-          milestone: true,
-        },
-      });
-
-      if (!submission) {
-        throw new NotFoundException('Submission not found');
-      }
-
-      // Update submission status and comments
-      const updatedSubmission = await tx.milestoneSubmission.update({
-        where: { id: submissionId },
-        data: {
-          status: data.status,
-          comments: data.comments,
-        },
-      });
+          data: {
+            ...data,
+            milestone: {
+              update: {
+                status: data.status === 'Approved' ? 'Completed' : undefined,
+              },
+            },
+          },
+        });
 
       return updatedSubmission;
-    });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Milestone not found or does not belong to this company',
+        );
+      }
+      throw err;
+    }
   }
 
   async reviewProjectSubmission(
@@ -528,33 +532,34 @@ export class ProjectService {
     submissionId: string,
     data: ReviewMilestoneSubmissionValidation,
   ) {
-    return this.postgresService.$transaction(async (tx) => {
-      // Find submission and verify ownership through project
-      const submission = await tx.projectSubmission.findFirst({
-        where: {
-          id: submissionId,
-          proposal: {
+    try {
+      // Update submission status and comments
+      const updatedSubmission =
+        await this.postgresService.projectSubmission.update({
+          where: {
+            id: submissionId,
             project: {
               companyId,
             },
           },
-        },
-        include: {
-          proposal: true,
-        },
-      });
-
-      if (!submission) {
-        throw new NotFoundException('Submission not found');
-      }
-
-      // Update submission status and comments
-      const updatedSubmission = await tx.projectSubmission.update({
-        where: { id: submissionId },
-        data,
-      });
+          data: {
+            ...data,
+            project: {
+              update: {
+                status: data.status === 'Approved' ? 'Completed' : undefined,
+              },
+            },
+          },
+        });
 
       return updatedSubmission;
-    });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Project not found or does not belong to this company',
+        );
+      }
+      throw err;
+    }
   }
 }

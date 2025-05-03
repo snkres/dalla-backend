@@ -30,6 +30,7 @@ import {
   calculateProfileCompletion,
   PROJECTS_MIN_NUMBER,
 } from './utils/profile-completion.util';
+import { ModifyProposalValidation } from '@/proposals/dto/modify-proposal.validation';
 
 @Injectable()
 export class ProfessionalsService {
@@ -460,7 +461,7 @@ export class ProfessionalsService {
     professionalId: string,
     projectId: string,
     proposalId: string,
-    data: CreateProposalValidation,
+    data: ModifyProposalValidation,
   ) {
     return this.proposalService.modifyProposal(
       professionalId,

@@ -135,7 +135,7 @@ model UserProject {
 }
 
 model Project {
-  id                     String        @id
+  id                     String              @id
   title                  String
   description            String
   scope                  String
@@ -143,14 +143,15 @@ model Project {
   skills                 String[]
   deliverables           String?
   meta                   Json? // will include project type, project size, project budget, project deadline
-  approved               Boolean       @default(true)
-  status                 ProjectStatus @default(Open)
+  approved               Boolean             @default(false)
+  status                 ProjectStatus       @default(Open)
   companyId              String
   assignedProfessionalId String?
   proposals              Proposal[]
+  submissions            ProjectSubmission[] 
   media                  String[]
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
   deletedAt              DateTime?
 
   company      Company @relation(fields: [companyId], references: [id])
@@ -195,7 +196,7 @@ enum SubmissionStatus {
 }
 
 model Proposal {
-  id               String             @id
+  id               String       @id
   projectId        String
   professionalId   String
   description      String
@@ -203,9 +204,8 @@ model Proposal {
   timeline         String
   media            String[]
   relevantProjects UserProject[]
-  type             ProposalType       @default(AllInOne)
+  type             ProposalType @default(AllInOne)
   milestones       Milestone[]
-  submission       ProjectSubmission?
 
   status    ProposalStatus @default(Pending)
   createdAt DateTime       @default(now())
@@ -269,17 +269,17 @@ enum Status {
 }
 
 model Milestone {
-  id          String               @id
+  id          String                @id
   proposalId  String
   title       String
   description String
   price       Float
   timeline    String
-  status      MilestoneStatus      @default(Pending)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  status      MilestoneStatus       @default(Pending)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
   order       Int
-  submission  MilestoneSubmission?
+  submissions MilestoneSubmission[]
 
   proposal Proposal @relation(fields: [proposalId], references: [id])
 
@@ -289,7 +289,7 @@ model Milestone {
 
 model MilestoneSubmission {
   id          String           @id
-  milestoneId String           @unique
+  milestoneId String
   description String
   media       String[]
   status      SubmissionStatus @default(Pending)
@@ -304,7 +304,7 @@ model MilestoneSubmission {
 
 model ProjectSubmission {
   id          String           @id
-  proposalId  String           @unique
+  projectId   String
   description String
   media       String[]
   status      SubmissionStatus @default(Pending)
@@ -312,7 +312,7 @@ model ProjectSubmission {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  proposal Proposal @relation(fields: [proposalId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
 
-  @@index([proposalId])
+  @@index([projectId])
 }
