@@ -492,10 +492,10 @@ export class ProjectService {
     submissionId: string,
     data: ReviewMilestoneSubmissionValidation,
   ) {
-    return this.postgresService.$transaction(async (tx) => {
-      try {
-        // Update submission status and comments
-        const updatedSubmission = await tx.milestoneSubmission.update({
+    try {
+      // Update submission status and comments
+      const updatedSubmission =
+        await this.postgresService.milestoneSubmission.update({
           where: {
             id: submissionId,
             milestone: {
@@ -507,8 +507,7 @@ export class ProjectService {
             },
           },
           data: {
-            status: data.status,
-            comments: data.comments,
+            ...data,
             milestone: {
               update: {
                 status: data.status === 'Approved' ? 'Completed' : undefined,
@@ -517,25 +516,15 @@ export class ProjectService {
           },
         });
 
-        await tx.milestone.update({
-          where: {
-            id: updatedSubmission.milestoneId,
-          },
-          data: {
-            status: data.status === 'Approved' ? 'Completed' : undefined,
-          },
-        });
-
-        return updatedSubmission;
-      } catch (err) {
-        if (err.code === 'P2025') {
-          throw new NotFoundException(
-            'Milestone not found or does not belong to this company',
-          );
-        }
-        throw err;
+      return updatedSubmission;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Milestone not found or does not belong to this company',
+        );
       }
-    });
+      throw err;
+    }
   }
 
   async reviewProjectSubmission(
@@ -543,10 +532,10 @@ export class ProjectService {
     submissionId: string,
     data: ReviewMilestoneSubmissionValidation,
   ) {
-    return this.postgresService.$transaction(async (tx) => {
-      try {
-        // Update submission status and comments
-        const updatedSubmission = await tx.projectSubmission.update({
+    try {
+      // Update submission status and comments
+      const updatedSubmission =
+        await this.postgresService.projectSubmission.update({
           where: {
             id: submissionId,
             project: {
@@ -563,24 +552,14 @@ export class ProjectService {
           },
         });
 
-        await tx.project.update({
-          where: {
-            id: updatedSubmission.projectId,
-          },
-          data: {
-            status: data.status === 'Approved' ? 'Completed' : undefined,
-          },
-        });
-
-        return updatedSubmission;
-      } catch (err) {
-        if (err.code === 'P2025') {
-          throw new NotFoundException(
-            'Project not found or does not belong to this company',
-          );
-        }
-        throw err;
+      return updatedSubmission;
+    } catch (err) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(
+          'Project not found or does not belong to this company',
+        );
       }
-    });
+      throw err;
+    }
   }
 }
