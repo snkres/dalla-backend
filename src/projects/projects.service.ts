@@ -71,6 +71,7 @@ export class ProjectService {
         scope: true,
         status: true,
         media: true,
+        submissions: true,
         _count: {
           select: {
             proposals: {
@@ -192,6 +193,7 @@ export class ProjectService {
           skills: true,
           meta: true,
           createdAt: true,
+          submissions: true,
           company: {
             select: {
               id: true,
@@ -244,6 +246,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
+          submissions: true,
           proposals: {
             where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
@@ -301,6 +304,7 @@ export class ProjectService {
         include: {
           company: true,
           professional: true,
+          submissions: true,
           proposals: {
             where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
@@ -489,42 +493,48 @@ export class ProjectService {
     data: ReviewMilestoneSubmissionValidation,
   ) {
     return this.postgresService.$transaction(async (tx) => {
-      // Find submission and verify ownership through project
-      const submission = await tx.milestoneSubmission.findFirst({
-        where: {
-          id: submissionId,
-          milestone: {
-            proposal: {
-              project: {
-                companyId,
+      try {
+        // Update submission status and comments
+        const updatedSubmission = await tx.milestoneSubmission.update({
+          where: {
+            id: submissionId,
+            milestone: {
+              proposal: {
+                project: {
+                  companyId,
+                },
               },
             },
           },
-        },
-        include: {
-          milestone: true,
-        },
-      });
-
-      if (!submission) {
-        throw new NotFoundException('Submission not found');
-      }
-
-      // Update submission status and comments
-      const updatedSubmission = await tx.milestoneSubmission.update({
-        where: { id: submissionId },
-        data: {
-          status: data.status,
-          comments: data.comments,
-          milestone: {
-            update: {
-              status: 'Completed',
+          data: {
+            status: data.status,
+            comments: data.comments,
+            milestone: {
+              update: {
+                status: data.status === 'Approved' ? 'Completed' : undefined,
+              },
             },
           },
-        },
-      });
+        });
 
-      return updatedSubmission;
+        await tx.milestone.update({
+          where: {
+            id: updatedSubmission.milestoneId,
+          },
+          data: {
+            status: data.status === 'Approved' ? 'Completed' : undefined,
+          },
+        });
+
+        return updatedSubmission;
+      } catch (err) {
+        if (err.code === 'P2025') {
+          throw new NotFoundException(
+            'Milestone not found or does not belong to this company',
+          );
+        }
+        throw err;
+      }
     });
   }
 
@@ -534,37 +544,43 @@ export class ProjectService {
     data: ReviewMilestoneSubmissionValidation,
   ) {
     return this.postgresService.$transaction(async (tx) => {
-      // Find submission and verify ownership through project
-      const submission = await tx.projectSubmission.findFirst({
-        where: {
-          id: submissionId,
-          project: {
-            companyId,
-          },
-        },
-        include: {
-          project: true,
-        },
-      });
-
-      if (!submission) {
-        throw new NotFoundException('Submission not found');
-      }
-
-      // Update submission status and comments
-      const updatedSubmission = await tx.projectSubmission.update({
-        where: { id: submissionId },
-        data: {
-          ...data,
-          project: {
-            update: {
-              status: 'Completed',
+      try {
+        // Update submission status and comments
+        const updatedSubmission = await tx.projectSubmission.update({
+          where: {
+            id: submissionId,
+            project: {
+              companyId,
             },
           },
-        },
-      });
+          data: {
+            ...data,
+            project: {
+              update: {
+                status: data.status === 'Approved' ? 'Completed' : undefined,
+              },
+            },
+          },
+        });
 
-      return updatedSubmission;
+        await tx.project.update({
+          where: {
+            id: updatedSubmission.projectId,
+          },
+          data: {
+            status: data.status === 'Approved' ? 'Completed' : undefined,
+          },
+        });
+
+        return updatedSubmission;
+      } catch (err) {
+        if (err.code === 'P2025') {
+          throw new NotFoundException(
+            'Project not found or does not belong to this company',
+          );
+        }
+        throw err;
+      }
     });
   }
 }
