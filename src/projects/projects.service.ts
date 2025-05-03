@@ -124,7 +124,7 @@ export class ProjectService {
                 milestones: {
                   orderBy: { order: 'asc' },
                   include: {
-                    submission: true,
+                    submissions: true,
                   },
                 },
               },
@@ -152,7 +152,7 @@ export class ProjectService {
             milestones: {
               orderBy: { order: 'asc' },
               include: {
-                submission: true,
+                submissions: true,
               },
             },
           },
@@ -213,7 +213,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -265,7 +265,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -308,7 +308,7 @@ export class ProjectService {
               milestones: {
                 orderBy: { order: 'asc' },
                 include: {
-                  submission: true,
+                  submissions: true,
                 },
               },
             },
@@ -429,9 +429,9 @@ export class ProjectService {
           id: newId('submission'),
           description: data.description,
           media: data.media,
-          proposal: {
+          project: {
             connect: {
-              id: proposal.id,
+              id: projectId,
             },
           },
         },
@@ -516,6 +516,11 @@ export class ProjectService {
         data: {
           status: data.status,
           comments: data.comments,
+          milestone: {
+            update: {
+              status: 'Completed',
+            },
+          },
         },
       });
 
@@ -533,14 +538,12 @@ export class ProjectService {
       const submission = await tx.projectSubmission.findFirst({
         where: {
           id: submissionId,
-          proposal: {
-            project: {
-              companyId,
-            },
+          project: {
+            companyId,
           },
         },
         include: {
-          proposal: true,
+          project: true,
         },
       });
 
@@ -551,7 +554,14 @@ export class ProjectService {
       // Update submission status and comments
       const updatedSubmission = await tx.projectSubmission.update({
         where: { id: submissionId },
-        data,
+        data: {
+          ...data,
+          project: {
+            update: {
+              status: 'Completed',
+            },
+          },
+        },
       });
 
       return updatedSubmission;
