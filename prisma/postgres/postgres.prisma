@@ -143,7 +143,7 @@ model Project {
   skills                 String[]
   deliverables           String?
   meta                   Json? // will include project type, project size, project budget, project deadline
-  approved               Boolean             @default(true)
+  approved               Boolean             @default(false)
   status                 ProjectStatus       @default(Open)
   companyId              String
   assignedProfessionalId String?
