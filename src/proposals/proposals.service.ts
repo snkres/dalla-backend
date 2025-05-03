@@ -16,6 +16,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { pagination } from 'prisma-extension-pagination';
+import { ModifyProposalValidation } from './dto/modify-proposal.validation';
+import { UpdateMilestoneValidation } from './dto/update-milestone.validation';
 
 @Injectable()
 export class ProposalsService {
@@ -167,6 +169,11 @@ export class ProposalsService {
         include: {
           professional: true,
           relevantProjects: true,
+          milestones: {
+            include: {
+              submissions: true,
+            },
+          },
         },
       })
       .withPages({
@@ -193,16 +200,13 @@ export class ProposalsService {
           professionalId,
           deletedAt: null,
         },
-        select: {
-          id: true,
-          status: true,
-          createdAt: true,
-          projectId: true,
+        include: {
           project: {
             select: {
               id: true,
               title: true,
               meta: true,
+              submissions: true,
               company: {
                 select: {
                   id: true,
@@ -216,6 +220,11 @@ export class ProposalsService {
                   },
                 },
               },
+            },
+          },
+          milestones: {
+            include: {
+              submissions: true,
             },
           },
         },
@@ -261,7 +270,11 @@ export class ProposalsService {
           },
         },
         relevantProjects: true,
-        milestones: true,
+        milestones: {
+          include: {
+            submissions: true,
+          },
+        },
       },
     });
 
@@ -276,9 +289,10 @@ export class ProposalsService {
     professionalId: string,
     projectId: string,
     proposalId: string,
-    data: CreateProposalValidation,
+    data: ModifyProposalValidation,
   ) {
-    const { relevantProjects, milestones: _, ...rest } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { relevantProjects, milestones, ...rest } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const mappedMilestones = this.mapMilestonesData(milestones);
     try {
       return this.postgresService.proposal.update({
         where: {
@@ -286,11 +300,23 @@ export class ProposalsService {
           projectId,
           id: proposalId,
           deletedAt: null,
+          status: 'Pending',
         },
         data: {
           ...rest,
           relevantProjects: {
             connect: relevantProjects.map((projectId) => ({ id: projectId })),
+          },
+          // Add the new ones, update the existing ones, and delete the rest
+          milestones: {
+            deleteMany: {
+              id: { notIn: mappedMilestones.map((milestone) => milestone.id) },
+            },
+            upsert: mappedMilestones.map((milestone) => ({
+              where: { id: milestone.id },
+              update: milestone,
+              create: milestone,
+            })),
           },
         },
         include: {
@@ -300,11 +326,18 @@ export class ProposalsService {
     } catch (err) {
       if (err.code === 'P2025') {
         throw new BadRequestException(
-          'Proposal not found or does not belong to this professional',
+          'Proposal not found, not pending or does not belong to this professional',
         );
       }
       throw err;
     }
+  }
+
+  private mapMilestonesData(milestones: UpdateMilestoneValidation[]) {
+    return milestones?.map((milestone) => ({
+      ...milestone,
+      id: milestone?.id ?? newId('milestone'),
+    }));
   }
 
   async modifyProposalStatus(

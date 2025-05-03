@@ -35,6 +35,7 @@ import { GetProposalsStatisticsDto } from '@/proposals/dto/get-proposals-statist
 import { CreateMilestoneSubmissionValidation } from '@/proposals/dto/create-milestone-submission.validation';
 import { CreateProjectSubmissionValidation } from '@/proposals/dto/create-project-submission.validation';
 import { ProjectService } from '@/projects/projects.service';
+import { ModifyProposalValidation } from '@/proposals/dto/modify-proposal.validation';
 
 @Controller()
 @UseGuards(AuthGuard(UserTypes.User))
@@ -384,7 +385,7 @@ export class ProfessionalsController {
     @Param('projectId', new IdValidationPipe('project')) projectId: string,
     @Param('proposalId', new IdValidationPipe('proposal'))
     proposalId: string,
-    @Body() data: CreateProposalValidation,
+    @Body() data: ModifyProposalValidation,
   ) {
     try {
       const proposal = await this.professionalsService.modifyProposal(
