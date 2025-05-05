@@ -4,6 +4,8 @@ import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { newId } from '@/shared/utils/unique-id';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
+import { ProjectFeedbackService } from '@/project-feedback/project-feedback.service';
+import { SubmitFeedbackForCompanyDto } from '@/project-feedback/dto/submit-feedback-for-company.dto';
 import {
   ProfessionalEducationDto,
   UpdateProfessionalEducationDto,
@@ -39,6 +41,7 @@ export class ProfessionalsService {
     private readonly uploadService: UploadService,
     private readonly projectService: ProjectService,
     private readonly proposalService: ProposalsService,
+    private readonly projectFeedbackService: ProjectFeedbackService,
   ) {}
 
   async listProfessionals(query: PaginationDto) {
@@ -480,6 +483,19 @@ export class ProfessionalsService {
       professionalId,
       projectId,
       proposalId,
+    );
+  }
+
+  // Project feedback
+  async submitFeedbackForCompany(
+    professionalId: string,
+    projectId: string,
+    feedback: SubmitFeedbackForCompanyDto,
+  ) {
+    return this.projectFeedbackService.submitFeedbackForCompany(
+      feedback,
+      projectId,
+      professionalId,
     );
   }
 }

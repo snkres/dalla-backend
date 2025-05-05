@@ -18,6 +18,7 @@ import { MessageModule } from './message/message.module';
 import { NotificationModule } from './notification/notification.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ConversationModule } from './conversation/conversation.module';
+import { ProjectFeedbackModule } from './project-feedback/project-feedback.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { ConversationModule } from './conversation/conversation.module';
       },
     ]),
     ProposalsModule,
+    ProjectFeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService, PostgresPrismaService],

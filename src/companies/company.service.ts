@@ -4,6 +4,8 @@ import { newId } from '@/shared/utils/unique-id';
 import { OnboardingValidation } from './validation/onboarding.validation';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 import { ProjectService } from '@/projects/projects.service';
+import { ProjectFeedbackService } from '@/project-feedback/project-feedback.service';
+import { SubmitFeedbackForProfessionalDto } from '@/project-feedback/dto/submit-feedback-for-professional.dto';
 import { createProjectValidation } from '@/projects/validation/create-project.validation';
 import { PaginationDto } from '@/shared/dto/pagination.dto';
 import { ProjectStatus, ProposalStatus } from '@/prisma/postgres';
@@ -18,6 +20,7 @@ export class CompanyService {
     private readonly projectService: ProjectService,
     private readonly proposalService: ProposalsService,
     private readonly notificationService: NotificationService,
+    private readonly projectFeedbackService: ProjectFeedbackService,
   ) {}
 
   async onboarding(companyId: string, onboardingData: OnboardingValidation) {
@@ -83,6 +86,8 @@ export class CompanyService {
             logo: true,
             meta: true,
             createdAt: true,
+            feedbackCount: true,
+            totalRating: true,
           },
         },
         projects: {
@@ -263,6 +268,19 @@ export class CompanyService {
       companyId,
       submissionId,
       review,
+    );
+  }
+
+  // Project feedback
+  async submitFeedbackForProfessional(
+    companyId: string,
+    projectId: string,
+    feedback: SubmitFeedbackForProfessionalDto,
+  ) {
+    return this.projectFeedbackService.submitFeedbackForProfessional(
+      feedback,
+      projectId,
+      companyId,
     );
   }
 }

@@ -11,6 +11,7 @@ import { ProjectService } from '@/projects/projects.service';
 import { ProposalsService } from '@/proposals/proposals.service';
 import { CompanyService } from '@/companies/company.service';
 import { NotificationModule } from '@/notification/notification.module';
+import { ProjectFeedbackService } from '@/project-feedback/project-feedback.service';
 
 @Module({
   imports: [PlatformAuthModule, ConfigModule, NotificationModule],
@@ -23,6 +24,7 @@ import { NotificationModule } from '@/notification/notification.module';
     JWTService,
     ProjectService,
     ProposalsService,
+    ProjectFeedbackService,
   ],
   controllers: [ProfessionalsController],
 })

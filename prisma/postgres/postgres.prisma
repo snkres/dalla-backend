@@ -10,19 +10,21 @@ datasource db {
 }
 
 model User {
-  id          String       @id
-  name        String
-  username    String
-  email       String
-  password    String
-  UserProfile UserProfile?
-  onboarded   Boolean      @default(false)
-  verified    Boolean      @default(false)
-  suspended   Boolean      @default(false)
-  projects    Project[]
-  proposals   Proposal[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String                          @id
+  name             String
+  username         String
+  email            String
+  password         String
+  UserProfile      UserProfile?
+  onboarded        Boolean                         @default(false)
+  verified         Boolean                         @default(false)
+  suspended        Boolean                         @default(false)
+  projects         Project[]
+  proposals        Proposal[]
+  createdAt        DateTime                        @default(now())
+  updatedAt        DateTime                        @updatedAt
+  givenFeedback    ProfessionalToCompanyFeedback[]
+  receivedFeedback CompanyToProfessionalFeedback[]
 
   @@unique([email, id, username])
   @@index([email])
@@ -30,19 +32,20 @@ model User {
 }
 
 model Company {
-  id        String  @id
-  name      String
-  email     String
-  domain    String?
-  password  String
-  onboarded Boolean @default(false)
-  suspended Boolean @default(false)
-  verified  Boolean @default(false)
-
-  CompanyProfile CompanyProfile?
-  projects       Project[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id               String                          @id
+  name             String
+  email            String
+  domain           String?
+  password         String
+  onboarded        Boolean                         @default(false)
+  suspended        Boolean                         @default(false)
+  verified         Boolean                         @default(false)
+  CompanyProfile   CompanyProfile?
+  projects         Project[]
+  createdAt        DateTime                        @default(now())
+  updatedAt        DateTime                        @updatedAt
+  givenFeedback    CompanyToProfessionalFeedback[]
+  receivedFeedback ProfessionalToCompanyFeedback[]
 
   @@unique([id, email, domain])
   @@index([email, domain])
@@ -62,6 +65,9 @@ model CompanyProfile {
   logo             String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  totalRating   Float?
+  feedbackCount Int    @default(0)
 
   Company Company @relation(fields: [companyId], references: [id])
 
@@ -83,6 +89,10 @@ model UserProfile {
   projects   UserProject[]
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
+
+  totalRating   Float?
+  feedbackCount Int    @default(0)
+  skillRatings  Json? // e.g. { "JavaScript": { "rating": 4, "count": 5}}
 
   User User @relation(fields: [userId], references: [id])
 
@@ -148,14 +158,57 @@ model Project {
   companyId              String
   assignedProfessionalId String?
   proposals              Proposal[]
-  submissions            ProjectSubmission[] 
+  submissions            ProjectSubmission[]
   media                  String[]
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
   deletedAt              DateTime?
 
-  company      Company @relation(fields: [companyId], references: [id])
-  professional User?   @relation(fields: [assignedProfessionalId], references: [id])
+  company              Company                         @relation(fields: [companyId], references: [id])
+  professional         User?                           @relation(fields: [assignedProfessionalId], references: [id])
+  professionalFeedback ProfessionalToCompanyFeedback[]
+  companyFeedback      CompanyToProfessionalFeedback[]
+}
+
+model CompanyToProfessionalFeedback {
+  id           String   @id
+  projectId    String
+  companyId    String
+  userId       String
+  stars        Int // Calculated stars based on skill ratings
+  comment      String?
+  skillRatings Json // Map of skill names to star ratings, e.g., { "JavaScript": 4, "Python": 5 }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, companyId]) // Ensures one feedback per company per project
+  @@index([projectId])
+  @@index([companyId])
+  @@index([userId])
+}
+
+model ProfessionalToCompanyFeedback {
+  id        String   @id
+  projectId String
+  companyId String
+  userId    String
+  stars     Int // 1–5 rating for overall experience
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId]) // Ensures one feedback per professional per project
+  @@index([projectId])
+  @@index([companyId])
+  @@index([userId])
 }
 
 enum ProjectStatus {
@@ -196,7 +249,7 @@ enum SubmissionStatus {
 }
 
 model Proposal {
-  id               String       @id
+  id               String        @id
   projectId        String
   professionalId   String
   description      String
@@ -204,7 +257,7 @@ model Proposal {
   timeline         String
   media            String[]
   relevantProjects UserProject[]
-  type             ProposalType @default(AllInOne)
+  type             ProposalType  @default(AllInOne)
   milestones       Milestone[]
 
   status    ProposalStatus @default(Pending)
@@ -216,30 +269,28 @@ model Proposal {
   professional User    @relation(fields: [professionalId], references: [id])
 }
 
-
 model Conversation {
-  id           String    @id @default(uuid())
-  initiatorId  String    // User who initiated the conversation
-  participantId String   // The other participant
-  title        String    // Conversation title
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  messages     Message[] // Related messages
-  
+  id            String    @id @default(uuid())
+  initiatorId   String // User who initiated the conversation
+  participantId String // The other participant
+  title         String // Conversation title
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[] // Related messages
+
   @@unique([initiatorId, participantId])
 }
 
 model Message {
   id             String       @id @default(uuid())
-  conversationId String       // Link to conversation
-  senderId       String       // Who sent the message
+  conversationId String // Link to conversation
+  senderId       String // Who sent the message
   content        String       @db.Text
   meta           Json?
   status         Status       @default(Pending)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   conversation   Conversation @relation(fields: [conversationId], references: [id])
-
 }
 
 model Notifications {
@@ -252,9 +303,7 @@ model Notifications {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-
 }
-
 
 enum NotificationType {
   EVENT
@@ -284,7 +333,6 @@ model Milestone {
   proposal Proposal @relation(fields: [proposalId], references: [id])
 
   @@index([proposalId])
-
 }
 
 model MilestoneSubmission {
