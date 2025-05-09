@@ -57,13 +57,13 @@ export class ProjectFeedbackService {
 
       let createdFeedback;
       try {
-        createdFeedback = await tx.professionalToCompanyFeedback.create({
+        createdFeedback = await tx.projectFeedback.create({
           data: {
             ...feedback,
             id: newId('professionalFeedback'),
             projectId,
-            userId,
-            companyId,
+            receiverType: 'COMPANY',
+            receiverId: companyId,
           },
         });
       } catch (error) {
@@ -137,17 +137,18 @@ export class ProjectFeedbackService {
       const {
         professional: { id: userId, UserProfile: userProfile },
       } = project;
+
       let createdFeedback;
       try {
-        createdFeedback = await tx.companyToProfessionalFeedback.create({
+        createdFeedback = await tx.projectFeedback.create({
           data: {
-            comment: feedback.comment,
-            skillRatings: feedback.skillRatings as unknown as JsonValue,
-            stars,
             id: newId('companyFeedback'),
+            comment: feedback.comment,
+            meta: { skillRatings: feedback.skillRatings },
+            stars,
             projectId,
-            companyId,
-            userId,
+            receiverType: 'USER',
+            receiverId: userId,
           },
         });
       } catch (error) {

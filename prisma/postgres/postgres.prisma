@@ -10,21 +10,20 @@ datasource db {
 }
 
 model User {
-  id               String                          @id
+  id               String            @id
   name             String
   username         String
   email            String
   password         String
   UserProfile      UserProfile?
-  onboarded        Boolean                         @default(false)
-  verified         Boolean                         @default(false)
-  suspended        Boolean                         @default(false)
+  onboarded        Boolean           @default(false)
+  verified         Boolean           @default(false)
+  suspended        Boolean           @default(false)
   projects         Project[]
   proposals        Proposal[]
-  createdAt        DateTime                        @default(now())
-  updatedAt        DateTime                        @updatedAt
-  givenFeedback    ProfessionalToCompanyFeedback[]
-  receivedFeedback CompanyToProfessionalFeedback[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  receivedFeedback ProjectFeedback[] @relation("FeedbackToUser")
 
   @@unique([email, id, username])
   @@index([email])
@@ -32,20 +31,19 @@ model User {
 }
 
 model Company {
-  id               String                          @id
+  id               String            @id
   name             String
   email            String
   domain           String?
   password         String
-  onboarded        Boolean                         @default(false)
-  suspended        Boolean                         @default(false)
-  verified         Boolean                         @default(false)
+  onboarded        Boolean           @default(false)
+  suspended        Boolean           @default(false)
+  verified         Boolean           @default(false)
   CompanyProfile   CompanyProfile?
   projects         Project[]
-  createdAt        DateTime                        @default(now())
-  updatedAt        DateTime                        @updatedAt
-  givenFeedback    CompanyToProfessionalFeedback[]
-  receivedFeedback ProfessionalToCompanyFeedback[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  receivedFeedback ProjectFeedback[] @relation("FeedbackToCompany")
 
   @@unique([id, email, domain])
   @@index([email, domain])
@@ -164,51 +162,33 @@ model Project {
   updatedAt              DateTime            @updatedAt
   deletedAt              DateTime?
 
-  company              Company                         @relation(fields: [companyId], references: [id])
-  professional         User?                           @relation(fields: [assignedProfessionalId], references: [id])
-  professionalFeedback ProfessionalToCompanyFeedback[]
-  companyFeedback      CompanyToProfessionalFeedback[]
+  company      Company           @relation(fields: [companyId], references: [id])
+  professional User?             @relation(fields: [assignedProfessionalId], references: [id])
+  feedbacks    ProjectFeedback[]
 }
 
-model CompanyToProfessionalFeedback {
+enum UserType {
+  USER
+  COMPANY
+}
+
+model ProjectFeedback {
   id           String   @id
   projectId    String
-  companyId    String
-  userId       String
-  stars        Int // Calculated stars based on skill ratings
+  receiverType UserType
+  receiverId   String
+  stars        Int
   comment      String?
-  skillRatings Json // Map of skill names to star ratings, e.g., { "JavaScript": 4, "Python": 5 }
+  meta         Json? // will have skillRatings in the professional case
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
+  toUser    User?    @relation("FeedbackToUser", fields: [receiverId], references: [id], map: "to_user_relation")
+  toCompany Company? @relation("FeedbackToCompany", fields: [receiverId], references: [id], map: "to_company_relation")
 
-  @@unique([projectId, companyId]) // Ensures one feedback per company per project
+  @@unique([projectId, receiverId])
   @@index([projectId])
-  @@index([companyId])
-  @@index([userId])
-}
-
-model ProfessionalToCompanyFeedback {
-  id        String   @id
-  projectId String
-  companyId String
-  userId    String
-  stars     Int // 1–5 rating for overall experience
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
-
-  @@unique([projectId, userId]) // Ensures one feedback per professional per project
-  @@index([projectId])
-  @@index([companyId])
-  @@index([userId])
 }
 
 enum ProjectStatus {
