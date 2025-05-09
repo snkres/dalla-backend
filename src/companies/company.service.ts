@@ -96,6 +96,7 @@ export class CompanyService {
             status: 'Open',
           },
         },
+        receivedFeedback: true,
       },
     });
   }
