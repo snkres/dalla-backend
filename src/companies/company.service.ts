@@ -59,45 +59,65 @@ export class CompanyService {
   }
 
   async getProfile(companyId: string) {
-    return this.prisma.company.findUnique({
-      where: {
-        id: companyId,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        domain: true,
-        // industry: true,
-        // size: true,
-        onboarded: true,
-        suspended: true,
-        verified: true,
-        createdAt: true,
-        CompanyProfile: {
-          select: {
-            location: true,
-            areas: true,
-            goals: true,
-            targetIndustries: true,
-            website: true,
-            headline: true,
-            bio: true,
-            logo: true,
-            meta: true,
-            createdAt: true,
-            feedbackCount: true,
-            totalRating: true,
+    return this.prisma.$transaction(async (tx) => {
+      const company = await tx.company.findUnique({
+        where: {
+          id: companyId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          domain: true,
+          // industry: true,
+          // size: true,
+          onboarded: true,
+          suspended: true,
+          verified: true,
+          createdAt: true,
+          CompanyProfile: {
+            select: {
+              location: true,
+              areas: true,
+              goals: true,
+              targetIndustries: true,
+              website: true,
+              headline: true,
+              bio: true,
+              logo: true,
+              meta: true,
+              createdAt: true,
+              feedbackCount: true,
+              totalRating: true,
+            },
+          },
+          projects: {
+            where: {
+              deletedAt: null,
+              status: 'Open',
+            },
           },
         },
-        projects: {
-          where: {
-            deletedAt: null,
-            status: 'Open',
+      });
+
+      const receivedFeedbacks = await tx.project.findMany({
+        where: {
+          deletedAt: null,
+          companyId,
+        },
+        select: {
+          feedbacks: {
+            where: {
+              receiverType: 'COMPANY',
+            },
           },
         },
-        receivedFeedback: true,
-      },
+      });
+
+      return {
+        ...company,
+        receivedFeedbacks,
+      };
     });
   }
 

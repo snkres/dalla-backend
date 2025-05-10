@@ -18,7 +18,6 @@ CREATE TABLE "ProjectFeedback" (
     "id" TEXT NOT NULL,
     "projectId" TEXT NOT NULL,
     "receiverType" "UserType" NOT NULL,
-    "receiverId" TEXT NOT NULL,
     "stars" INTEGER NOT NULL,
     "comment" TEXT,
     "meta" JSONB,
@@ -31,14 +30,5 @@ CREATE TABLE "ProjectFeedback" (
 -- CreateIndex
 CREATE INDEX "ProjectFeedback_projectId_idx" ON "ProjectFeedback"("projectId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "ProjectFeedback_projectId_receiverId_key" ON "ProjectFeedback"("projectId", "receiverId");
-
 -- AddForeignKey
 ALTER TABLE "ProjectFeedback" ADD CONSTRAINT "ProjectFeedback_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProjectFeedback" ADD CONSTRAINT "to_user_relation" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProjectFeedback" ADD CONSTRAINT "to_company_relation" FOREIGN KEY ("receiverId") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

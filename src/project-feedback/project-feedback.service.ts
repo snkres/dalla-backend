@@ -63,7 +63,6 @@ export class ProjectFeedbackService {
             id: newId('professionalFeedback'),
             projectId,
             receiverType: 'COMPANY',
-            receiverId: companyId,
           },
         });
       } catch (error) {
@@ -148,7 +147,6 @@ export class ProjectFeedbackService {
             stars,
             projectId,
             receiverType: 'USER',
-            receiverId: userId,
           },
         });
       } catch (error) {

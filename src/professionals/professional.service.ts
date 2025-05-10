@@ -94,57 +94,98 @@ export class ProfessionalsService {
   }
 
   async getProfile(professionalId: string) {
-    return await this.prisma.userProfile.findFirst({
-      where: { userId: professionalId },
-      include: {
-        User: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            verified: true,
-            username: true,
-            onboarded: true,
-            projects: {
-              where: {
-                status: ProjectStatus.Completed,
-                assignedProfessionalId: professionalId,
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.findFirst({
+        where: { userId: professionalId },
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              verified: true,
+              username: true,
+              onboarded: true,
+              projects: {
+                where: {
+                  status: ProjectStatus.Completed,
+                  assignedProfessionalId: professionalId,
+                },
               },
             },
-            receivedFeedback: true,
+          },
+          education: true,
+          experience: true,
+          projects: true,
+        },
+      });
+
+      const receivedFeedbacks = await tx.project.findMany({
+        where: {
+          assignedProfessionalId: profile.User.id,
+          deletedAt: null,
+        },
+        select: {
+          feedbacks: {
+            where: {
+              receiverType: 'USER',
+            },
           },
         },
-        education: true,
-        experience: true,
-        projects: true,
-      },
+      });
+      console.log({ receivedFeedbacks });
+
+      return {
+        ...profile,
+        receivedFeedbacks,
+      };
     });
   }
 
   async getProfileByUsername(username: string) {
-    return await this.prisma.userProfile.findFirst({
-      where: { User: { username } },
-      include: {
-        User: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            verified: true,
-            username: true,
-            projects: {
-              where: {
-                status: ProjectStatus.Completed,
-                professional: { username },
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.findFirst({
+        where: { User: { username } },
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              verified: true,
+              username: true,
+              projects: {
+                where: {
+                  status: ProjectStatus.Completed,
+                  professional: { username },
+                },
               },
             },
-            receivedFeedback: true,
+          },
+          education: true,
+          experience: true,
+          projects: true,
+        },
+      });
+
+      const receivedFeedbacks = await tx.project.findMany({
+        where: {
+          assignedProfessionalId: profile.User.id,
+          deletedAt: null,
+        },
+        select: {
+          feedbacks: {
+            where: {
+              receiverType: 'USER',
+            },
           },
         },
-        education: true,
-        experience: true,
-        projects: true,
-      },
+      });
+
+      return {
+        ...profile,
+        receivedFeedbacks,
+      };
     });
   }
 

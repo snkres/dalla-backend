@@ -10,20 +10,19 @@ datasource db {
 }
 
 model User {
-  id               String            @id
-  name             String
-  username         String
-  email            String
-  password         String
-  UserProfile      UserProfile?
-  onboarded        Boolean           @default(false)
-  verified         Boolean           @default(false)
-  suspended        Boolean           @default(false)
-  projects         Project[]
-  proposals        Proposal[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  receivedFeedback ProjectFeedback[] @relation("FeedbackToUser")
+  id          String       @id
+  name        String
+  username    String
+  email       String
+  password    String
+  UserProfile UserProfile?
+  onboarded   Boolean      @default(false)
+  verified    Boolean      @default(false)
+  suspended   Boolean      @default(false)
+  projects    Project[]
+  proposals   Proposal[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([email, id, username])
   @@index([email])
@@ -31,19 +30,18 @@ model User {
 }
 
 model Company {
-  id               String            @id
-  name             String
-  email            String
-  domain           String?
-  password         String
-  onboarded        Boolean           @default(false)
-  suspended        Boolean           @default(false)
-  verified         Boolean           @default(false)
-  CompanyProfile   CompanyProfile?
-  projects         Project[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  receivedFeedback ProjectFeedback[] @relation("FeedbackToCompany")
+  id             String          @id
+  name           String
+  email          String
+  domain         String?
+  password       String
+  onboarded      Boolean         @default(false)
+  suspended      Boolean         @default(false)
+  verified       Boolean         @default(false)
+  CompanyProfile CompanyProfile?
+  projects       Project[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@unique([id, email, domain])
   @@index([email, domain])
@@ -176,18 +174,14 @@ model ProjectFeedback {
   id           String   @id
   projectId    String
   receiverType UserType
-  receiverId   String
   stars        Int
   comment      String?
   meta         Json? // will have skillRatings in the professional case
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  project   Project  @relation(fields: [projectId], references: [id])
-  toUser    User?    @relation("FeedbackToUser", fields: [receiverId], references: [id], map: "to_user_relation")
-  toCompany Company? @relation("FeedbackToCompany", fields: [receiverId], references: [id], map: "to_company_relation")
+  project Project @relation(fields: [projectId], references: [id])
 
-  @@unique([projectId, receiverId])
   @@index([projectId])
 }
 
