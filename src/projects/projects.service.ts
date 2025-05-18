@@ -158,6 +158,7 @@ export class ProjectService {
             },
           },
         },
+        feedbacks: true,
       },
     });
   }

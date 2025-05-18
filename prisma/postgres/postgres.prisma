@@ -30,15 +30,14 @@ model User {
 }
 
 model Company {
-  id        String  @id
-  name      String
-  email     String
-  domain    String?
-  password  String
-  onboarded Boolean @default(false)
-  suspended Boolean @default(false)
-  verified  Boolean @default(false)
-
+  id             String          @id
+  name           String
+  email          String
+  domain         String?
+  password       String
+  onboarded      Boolean         @default(false)
+  suspended      Boolean         @default(false)
+  verified       Boolean         @default(false)
   CompanyProfile CompanyProfile?
   projects       Project[]
   createdAt      DateTime        @default(now())
@@ -63,6 +62,9 @@ model CompanyProfile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  totalRating   Float?
+  feedbackCount Int    @default(0)
+
   Company Company @relation(fields: [companyId], references: [id])
 
   @@unique([companyId])
@@ -83,6 +85,10 @@ model UserProfile {
   projects   UserProject[]
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
+
+  totalRating   Float?
+  feedbackCount Int    @default(0)
+  skillRatings  Json? // e.g. { "JavaScript": { "rating": 4, "count": 5}}
 
   User User @relation(fields: [userId], references: [id])
 
@@ -148,14 +154,35 @@ model Project {
   companyId              String
   assignedProfessionalId String?
   proposals              Proposal[]
-  submissions            ProjectSubmission[] 
+  submissions            ProjectSubmission[]
   media                  String[]
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
   deletedAt              DateTime?
 
-  company      Company @relation(fields: [companyId], references: [id])
-  professional User?   @relation(fields: [assignedProfessionalId], references: [id])
+  company      Company           @relation(fields: [companyId], references: [id])
+  professional User?             @relation(fields: [assignedProfessionalId], references: [id])
+  feedbacks    ProjectFeedback[]
+}
+
+enum UserType {
+  USER
+  COMPANY
+}
+
+model ProjectFeedback {
+  id           String   @id
+  projectId    String
+  receiverType UserType
+  stars        Int
+  comment      String?
+  meta         Json? // will have skillRatings in the professional case
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
 }
 
 enum ProjectStatus {
@@ -196,7 +223,7 @@ enum SubmissionStatus {
 }
 
 model Proposal {
-  id               String       @id
+  id               String        @id
   projectId        String
   professionalId   String
   description      String
@@ -204,7 +231,7 @@ model Proposal {
   timeline         String
   media            String[]
   relevantProjects UserProject[]
-  type             ProposalType @default(AllInOne)
+  type             ProposalType  @default(AllInOne)
   milestones       Milestone[]
 
   status    ProposalStatus @default(Pending)
@@ -216,30 +243,28 @@ model Proposal {
   professional User    @relation(fields: [professionalId], references: [id])
 }
 
-
 model Conversation {
-  id           String    @id @default(uuid())
-  initiatorId  String    // User who initiated the conversation
-  participantId String   // The other participant
-  title        String    // Conversation title
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  messages     Message[] // Related messages
-  
+  id            String    @id @default(uuid())
+  initiatorId   String // User who initiated the conversation
+  participantId String // The other participant
+  title         String // Conversation title
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[] // Related messages
+
   @@unique([initiatorId, participantId])
 }
 
 model Message {
   id             String       @id @default(uuid())
-  conversationId String       // Link to conversation
-  senderId       String       // Who sent the message
+  conversationId String // Link to conversation
+  senderId       String // Who sent the message
   content        String       @db.Text
   meta           Json?
   status         Status       @default(Pending)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   conversation   Conversation @relation(fields: [conversationId], references: [id])
-
 }
 
 model Notifications {
@@ -252,9 +277,7 @@ model Notifications {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-
 }
-
 
 enum NotificationType {
   EVENT
@@ -284,7 +307,6 @@ model Milestone {
   proposal Proposal @relation(fields: [proposalId], references: [id])
 
   @@index([proposalId])
-
 }
 
 model MilestoneSubmission {

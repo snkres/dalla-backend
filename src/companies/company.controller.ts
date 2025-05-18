@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { SubmitFeedbackForProfessionalDto } from '@/project-feedback/dto/submit-feedback-for-professional.dto';
 import { CompanyService } from './company.service';
 import { CurrentCompany } from '@/shared/decorators/current-auth.decorator';
 import { OnboardingValidation } from './validation/onboarding.validation';
@@ -450,6 +451,37 @@ export class CompanyController {
           description: err,
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Project feedback
+  @Post('projects/:projectId/feedback')
+  async submitFeedbackForProfessional(
+    @CurrentCompany() company: Company,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Body() feedback: SubmitFeedbackForProfessionalDto,
+  ) {
+    try {
+      const createdFeedback =
+        await this.companyService.submitFeedbackForProfessional(
+          company.id,
+          projectId,
+          feedback,
+        );
+      return ResponseUtil.success(
+        createdFeedback,
+        'Feedback submitted successfully',
+        HttpStatus.CREATED,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
   }

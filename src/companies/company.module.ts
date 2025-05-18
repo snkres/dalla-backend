@@ -10,6 +10,7 @@ import { ProfessionalsService } from '@/professionals/professional.service';
 import { UploadService } from '@/shared/upload/upload.service';
 import { ObjectStorageService } from '@/shared/upload/object-storage.service';
 import { NotificationModule } from '@/notification/notification.module';
+import { ProjectFeedbackService } from '@/project-feedback/project-feedback.service';
 
 @Module({
   imports: [PlatformAuthModule, ProposalsModule, NotificationModule],
@@ -22,6 +23,7 @@ import { NotificationModule } from '@/notification/notification.module';
     JWTService,
     UploadService,
     ObjectStorageService,
+    ProjectFeedbackService,
   ],
 })
 export class CompanyModule {}

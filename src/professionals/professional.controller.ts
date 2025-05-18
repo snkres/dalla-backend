@@ -14,6 +14,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { SubmitFeedbackForCompanyDto } from '@/project-feedback/dto/submit-feedback-for-company.dto';
 import { ProfessionalsService } from './professional.service';
 import { ResponseUtil } from '@/shared/utils/response.util';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -486,6 +487,37 @@ export class ProfessionalsController {
         submission,
         'Project submission created successfully',
         201,
+      );
+    } catch (err) {
+      throw new CustomHttpException(
+        err?.message,
+        {
+          cause: err,
+          description: err,
+        },
+        err.status || HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  // Project feedback
+  @Post('projects/:projectId/feedback')
+  async submitFeedbackForCompany(
+    @CurrentUser() professional: User,
+    @Param('projectId', new IdValidationPipe('project')) projectId: string,
+    @Body() feedback: SubmitFeedbackForCompanyDto,
+  ) {
+    try {
+      const createdFeedback =
+        await this.professionalsService.submitFeedbackForCompany(
+          professional.id,
+          projectId,
+          feedback,
+        );
+      return ResponseUtil.success(
+        createdFeedback,
+        'Feedback submitted successfully',
+        HttpStatus.CREATED,
       );
     } catch (err) {
       throw new CustomHttpException(

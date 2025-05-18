@@ -4,6 +4,8 @@ import { ProfessionalOnboardingDto } from './dto/professional-onboarding.dto';
 import { newId } from '@/shared/utils/unique-id';
 import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { UploadService } from '@/shared/upload/upload.service';
+import { ProjectFeedbackService } from '@/project-feedback/project-feedback.service';
+import { SubmitFeedbackForCompanyDto } from '@/project-feedback/dto/submit-feedback-for-company.dto';
 import {
   ProfessionalEducationDto,
   UpdateProfessionalEducationDto,
@@ -39,6 +41,7 @@ export class ProfessionalsService {
     private readonly uploadService: UploadService,
     private readonly projectService: ProjectService,
     private readonly proposalService: ProposalsService,
+    private readonly projectFeedbackService: ProjectFeedbackService,
   ) {}
 
   async listProfessionals(query: PaginationDto) {
@@ -91,55 +94,98 @@ export class ProfessionalsService {
   }
 
   async getProfile(professionalId: string) {
-    return await this.prisma.userProfile.findFirst({
-      where: { userId: professionalId },
-      include: {
-        User: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            verified: true,
-            username: true,
-            onboarded: true,
-            projects: {
-              where: {
-                status: ProjectStatus.Completed,
-                assignedProfessionalId: professionalId,
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.findFirst({
+        where: { userId: professionalId },
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              verified: true,
+              username: true,
+              onboarded: true,
+              projects: {
+                where: {
+                  status: ProjectStatus.Completed,
+                  assignedProfessionalId: professionalId,
+                },
               },
             },
           },
+          education: true,
+          experience: true,
+          projects: true,
         },
-        education: true,
-        experience: true,
-        projects: true,
-      },
+      });
+
+      const receivedFeedbacks = await tx.project.findMany({
+        where: {
+          assignedProfessionalId: profile.User.id,
+          deletedAt: null,
+        },
+        select: {
+          feedbacks: {
+            where: {
+              receiverType: 'USER',
+            },
+          },
+        },
+      });
+      console.log({ receivedFeedbacks });
+
+      return {
+        ...profile,
+        receivedFeedbacks,
+      };
     });
   }
 
   async getProfileByUsername(username: string) {
-    return await this.prisma.userProfile.findFirst({
-      where: { User: { username } },
-      include: {
-        User: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            verified: true,
-            username: true,
-            projects: {
-              where: {
-                status: ProjectStatus.Completed,
-                professional: { username },
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.findFirst({
+        where: { User: { username } },
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              verified: true,
+              username: true,
+              projects: {
+                where: {
+                  status: ProjectStatus.Completed,
+                  professional: { username },
+                },
               },
             },
           },
+          education: true,
+          experience: true,
+          projects: true,
         },
-        education: true,
-        experience: true,
-        projects: true,
-      },
+      });
+
+      const receivedFeedbacks = await tx.project.findMany({
+        where: {
+          assignedProfessionalId: profile.User.id,
+          deletedAt: null,
+        },
+        select: {
+          feedbacks: {
+            where: {
+              receiverType: 'USER',
+            },
+          },
+        },
+      });
+
+      return {
+        ...profile,
+        receivedFeedbacks,
+      };
     });
   }
 
@@ -480,6 +526,19 @@ export class ProfessionalsService {
       professionalId,
       projectId,
       proposalId,
+    );
+  }
+
+  // Project feedback
+  async submitFeedbackForCompany(
+    professionalId: string,
+    projectId: string,
+    feedback: SubmitFeedbackForCompanyDto,
+  ) {
+    return this.projectFeedbackService.submitFeedbackForCompany(
+      feedback,
+      projectId,
+      professionalId,
     );
   }
 }
