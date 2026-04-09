@@ -16,7 +16,7 @@ export class EmailService {
 
   async sendOtpEmail(data: EmailInput) {
     const emailInput: ResendEmailInput = {
-      from: 'Dalla <no-reply@dalla.app>',
+      from: process.env.EMAIL_FROM as string,
       ...data,
     };
     return this.mailQueue.add(EmailType.OTP_EMAIL, emailInput, {
