@@ -20,6 +20,20 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { ProjectFeedbackModule } from './project-feedback/project-feedback.module';
 
+const isRedisTlsEnabled = () => {
+  const redisTls = process.env.REDIS_TLS?.toLowerCase();
+  return redisTls === 'true' || redisTls === '1' || redisTls === 'yes';
+};
+
+const getRedisConfig = () => ({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: Number(process.env.REDIS_PORT || 6379),
+  username: process.env.REDIS_USERNAME,
+  password: process.env.REDIS_PASSWORD,
+  connectTimeout: Number(process.env.REDIS_CONNECT_TIMEOUT || 10000),
+  tls: isRedisTlsEnabled() ? { rejectUnauthorized: false } : undefined,
+});
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,13 +50,7 @@ import { ProjectFeedbackModule } from './project-feedback/project-feedback.modul
       },
     }),
     BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT),
-        username: process.env.REDIS_USERNAME,
-        password: process.env.REDIS_PASSWORD,
-        tls: { rejectUnauthorized: false },
-      },
+      redis: getRedisConfig(),
     }),
     PlatformAuthModule,
     RedisModule,
