@@ -1,0 +1,340 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/prisma/client/postgres"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("POSTGRES_DATABASE_URL")
+  shadowDatabaseUrl = env("PG_SHADOW_DATABASE")
+}
+
+model User {
+  id          String       @id
+  name        String
+  username    String
+  email       String
+  password    String
+  UserProfile UserProfile?
+  onboarded   Boolean      @default(false)
+  verified    Boolean      @default(false)
+  suspended   Boolean      @default(false)
+  projects    Project[]
+  proposals   Proposal[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([email, id, username])
+  @@index([email])
+  @@index([username])
+}
+
+model Company {
+  id             String          @id
+  name           String
+  email          String
+  domain         String?
+  password       String
+  onboarded      Boolean         @default(false)
+  suspended      Boolean         @default(false)
+  verified       Boolean         @default(false)
+  CompanyProfile CompanyProfile?
+  projects       Project[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([id, email, domain])
+  @@index([email, domain])
+}
+
+model CompanyProfile {
+  id               String   @id
+  companyId        String
+  location         String?
+  areas            Json[]
+  goals            Json[]
+  targetIndustries Json[]
+  website          String?
+  meta             Json? // will include phone, social media links, company size, company type, company logo
+  headline         String?
+  bio              String?
+  logo             String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  totalRating   Float?
+  feedbackCount Int    @default(0)
+
+  Company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId])
+}
+
+model UserProfile {
+  id         String           @id
+  userId     String
+  headline   String
+  gender     Gender?
+  bio        String?
+  avatar     String
+  meta       Json? // will include phone, location, years of exprerience, skills, website link
+  resume     String?
+  percentage Float?           @default(20)
+  experience UserExperience[]
+  education  UserEducation[]
+  projects   UserProject[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  totalRating   Float?
+  feedbackCount Int    @default(0)
+  skillRatings  Json? // e.g. { "JavaScript": { "rating": 4, "count": 5}}
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+}
+
+model UserExperience {
+  id        String   @id
+  profileId String
+  title     String
+  company   String
+  location  String
+  meta      Json? // will include skills, responsibilities, achievements, type of employment
+  startDate String
+  endDate   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  UserProfile UserProfile @relation(fields: [profileId], references: [id])
+}
+
+model UserEducation {
+  id          String   @id
+  profileId   String
+  school      String
+  degree      String
+  field       String
+  startDate   String
+  endDate     String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  UserProfile UserProfile @relation(fields: [profileId], references: [id])
+}
+
+model UserProject {
+  id          String   @id
+  profileId   String
+  title       String
+  role        String
+  description String
+  skills      String[]
+  thumbnail   String
+  link        String
+  media       String[]
+
+  UserProfile UserProfile @relation(fields: [profileId], references: [id])
+  Proposals   Proposal[]
+}
+
+model Project {
+  id                     String              @id
+  title                  String
+  description            String
+  scope                  String
+  jobTitle               String?
+  skills                 String[]
+  deliverables           String?
+  meta                   Json? // will include project type, project size, project budget, project deadline
+  approved               Boolean             @default(false)
+  status                 ProjectStatus       @default(Open)
+  companyId              String
+  assignedProfessionalId String?
+  proposals              Proposal[]
+  submissions            ProjectSubmission[]
+  media                  String[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  deletedAt              DateTime?
+
+  company      Company           @relation(fields: [companyId], references: [id])
+  professional User?             @relation(fields: [assignedProfessionalId], references: [id])
+  feedbacks    ProjectFeedback[]
+}
+
+enum UserType {
+  USER
+  COMPANY
+}
+
+model ProjectFeedback {
+  id           String   @id
+  projectId    String
+  receiverType UserType
+  stars        Int
+  comment      String?
+  meta         Json? // will have skillRatings in the professional case
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+}
+
+enum ProjectStatus {
+  Open
+  Closed
+  InProgress
+  Completed
+}
+
+enum ProposalStatus {
+  Pending
+  Accepted
+  Rejected
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum ProposalType {
+  AllInOne
+  MilestoneBased
+}
+
+enum MilestoneStatus {
+  Pending
+  Changes
+  Completed
+  Rejected
+}
+
+enum SubmissionStatus {
+  Pending
+  Approved
+  Rejected
+  ChangesRequested
+}
+
+model Proposal {
+  id               String        @id
+  projectId        String
+  professionalId   String
+  description      String
+  price            Float
+  timeline         String
+  media            String[]
+  relevantProjects UserProject[]
+  type             ProposalType  @default(AllInOne)
+  milestones       Milestone[]
+
+  status    ProposalStatus @default(Pending)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
+
+  project      Project @relation(fields: [projectId], references: [id])
+  professional User    @relation(fields: [professionalId], references: [id])
+}
+
+model Conversation {
+  id            String    @id @default(uuid())
+  initiatorId   String // User who initiated the conversation
+  participantId String // The other participant
+  title         String // Conversation title
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[] // Related messages
+
+  @@unique([initiatorId, participantId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String // Link to conversation
+  senderId       String // Who sent the message
+  content        String       @db.Text
+  meta           Json?
+  status         Status       @default(Pending)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+}
+
+model Notifications {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType @default(EVENT)
+  title     String
+  content   String           @db.Text
+  metadata  Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum NotificationType {
+  EVENT
+  MESSAGE
+}
+
+enum Status {
+  Pending
+  Sent
+  Delivered
+  Read
+}
+
+model Milestone {
+  id          String                @id
+  proposalId  String
+  title       String
+  description String
+  price       Float
+  timeline    String
+  status      MilestoneStatus       @default(Pending)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  order       Int
+  submissions MilestoneSubmission[]
+
+  proposal Proposal @relation(fields: [proposalId], references: [id])
+
+  @@index([proposalId])
+}
+
+model MilestoneSubmission {
+  id          String           @id
+  milestoneId String
+  description String
+  media       String[]
+  status      SubmissionStatus @default(Pending)
+  comments    String? // Optional comments field for review feedback
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  milestone Milestone @relation(fields: [milestoneId], references: [id])
+
+  @@index([milestoneId])
+}
+
+model ProjectSubmission {
+  id          String           @id
+  projectId   String
+  description String
+  media       String[]
+  status      SubmissionStatus @default(Pending)
+  comments    String? // Optional comments field for review feedback
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+}

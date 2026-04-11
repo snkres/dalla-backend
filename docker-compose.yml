@@ -1,0 +1,36 @@
+version: "3.8"
+services: 
+  redis:
+    image: redis:alpine
+    container_name: redis-dallah
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --appendonly yes
+    volumes:
+      - ./volumes/redis:/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-dallah
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=kroking
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=dalla
+
+  mongodb:
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    container_name: mongodb-dallah
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - 27017:27017
+    volumes:
+      - ./volumes/mongodb:/data/db

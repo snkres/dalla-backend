@@ -1,0 +1,55 @@
+on:
+  push:
+    branches:
+      - main
+      - dev
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Deploying to Dev
+        uses: appleboy/ssh-action@v1.0.0
+        if: github.ref == 'refs/heads/dev'
+        with:
+          host: ${{ secrets.DEV_SERVER }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          timeout: 60s
+          script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            cd /root/dalla-backend
+            git fetch --all
+            git reset --hard origin/dev
+            git clean -f -d
+            pnpm install
+            pnpm migrate:postgres
+            pnpm build
+            pm2 restart ecosystem.config.js
+            echo "Waiting for 10sec for logs to be ready..."
+            sleep 5
+            pm2 logs --nostream --lines 100
+      - name: Deploying to prod
+        uses: appleboy/ssh-action@v1.0.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          host: ${{ secrets.PROD_SERVER }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          timeout: 60s
+          script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            cd /root/dalla-backend
+            git fetch --all
+            git reset --hard origin/dev
+            git clean -f -d
+            pnpm install
+            pnpm migrate:postgres
+            pnpm build
+            pm2 restart ecosystem.config.js
+            echo "Waiting for 10sec for logs to be ready..."
+            sleep 5
+            pm2 logs --nostream --lines 100
