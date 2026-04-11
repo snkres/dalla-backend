@@ -36,8 +36,27 @@ export class WebsocketGateway
       // Try to get token from multiple sources
       let token: string;
 
+      const authToken =
+        typeof client.handshake.auth?.token === 'string'
+          ? client.handshake.auth.token
+          : undefined;
+      if (authToken) {
+        token = authToken;
+      }
+
+      if (!token) {
+        const authorizationHeader = client.handshake.headers.authorization;
+        const bearerToken = Array.isArray(authorizationHeader)
+          ? authorizationHeader[0]
+          : authorizationHeader;
+
+        if (bearerToken?.startsWith('Bearer ')) {
+          token = bearerToken.slice(7);
+        }
+      }
+
       const cookies = client.handshake.headers.cookie;
-      if (cookies) {
+      if (!token && cookies) {
         const cookiesArray = cookies.split(';').map((cookie) => cookie.trim());
         const tokenCookie = cookiesArray.find((c) =>
           c.startsWith('access_token='),

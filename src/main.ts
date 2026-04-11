@@ -22,6 +22,8 @@ async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       }
     },
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Refresh-Token'],
+    exposedHeaders: ['x-access-token', 'x-refresh-token'],
     methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,

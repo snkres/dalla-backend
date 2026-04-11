@@ -11,8 +11,8 @@ import { PostgresPrismaService } from '@/config/prisma/postgres.services';
 import { PinoLogger } from 'nestjs-pino';
 import { IS_PUBLIC_KEY } from '@/shared/decorators/isPublic.decorator';
 import { UserTypes } from '@/shared/enums/user-types.enum';
-import setResponseCookies from '../utils/set-response-cookies';
 import { JWTService } from '../../miscs/jwt';
+import setResponseAuthHeaders from '../utils/set-response-auth-headers';
 
 /**
  * If type is not provided, both user and company will be accepted
@@ -43,8 +43,7 @@ export function AuthGuard(type?: UserTypes) {
 
       const request = context.switchToHttp().getRequest<Request>();
       const response = context.switchToHttp().getResponse<Response>();
-      const { accessToken, refreshToken } =
-        this.extractTokensFromCookies(request);
+      const { accessToken, refreshToken } = this.extractTokens(request);
 
       let payload;
       try {
@@ -106,7 +105,7 @@ export function AuthGuard(type?: UserTypes) {
             userId: refreshPayload.userId,
             type: refreshPayload.type,
           });
-          setResponseCookies(response, newTokens);
+          setResponseAuthHeaders(response, newTokens);
 
           request[this.type] = record;
           return true;
@@ -120,12 +119,28 @@ export function AuthGuard(type?: UserTypes) {
       }
     }
 
-    extractTokensFromCookies(request: Request): {
+    extractTokens(request: Request): {
       accessToken: string;
       refreshToken: string;
     } {
-      const accessToken = request.cookies.access_token as string;
-      const refreshToken = request.cookies.refresh_token as string;
+      const authorizationHeader = request.headers.authorization;
+      const refreshTokenHeader = request.headers['x-refresh-token'];
+
+      const bearerToken = Array.isArray(authorizationHeader)
+        ? authorizationHeader[0]
+        : authorizationHeader;
+      const headerAccessToken = bearerToken?.startsWith('Bearer ')
+        ? bearerToken.slice(7)
+        : undefined;
+      const headerRefreshToken = Array.isArray(refreshTokenHeader)
+        ? refreshTokenHeader[0]
+        : refreshTokenHeader;
+
+      const accessToken =
+        headerAccessToken || (request.cookies.access_token as string);
+      const refreshToken =
+        headerRefreshToken || (request.cookies.refresh_token as string);
+
       if (!accessToken || !refreshToken) {
         this.logger.error('Access token or refresh token is missing');
         throw new UnauthorizedException('Invalid token');

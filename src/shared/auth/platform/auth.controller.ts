@@ -16,7 +16,6 @@ import { ResponseUtil } from '@/shared/utils/response.util';
 import { CustomHttpException } from '@/shared/exceptions/custom-http-exception';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { RegisterValidation } from './dto/register.validation';
-import setResponseCookies from './utils/set-response-cookies';
 import { AuthGuard } from './guards/auth.guard';
 import { UserTypes } from '@/shared/enums/user-types.enum';
 import {
@@ -36,7 +35,7 @@ export class PlatformAuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async companyLogin(@Body() loginDto: LoginDto, @Res() res: Response) {
+  async companyLogin(@Body() loginDto: LoginDto) {
     try {
       const payload = await this.authService.validateLogin(
         loginDto.email,
@@ -44,8 +43,7 @@ export class PlatformAuthController {
         loginDto.userType,
       );
 
-      setResponseCookies(res, payload);
-      return ResponseUtil.success('Logged in successfully');
+      return ResponseUtil.success(payload, 'Logged in successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
@@ -57,12 +55,11 @@ export class PlatformAuthController {
 
   @Public()
   @Post('/google')
-  async signInWithGoogle(@Body() body: SignInWithGoogle, @Res() res: Response) {
+  async signInWithGoogle(@Body() body: SignInWithGoogle) {
     try {
       const result = await this.authService.signInWithGoogle(body);
-      setResponseCookies(res, result, { secure: true, sameSite: 'none' });
       return ResponseUtil.success(
-        null,
+        result,
         'Logged in successfully',
         HttpStatus.OK,
       );
@@ -79,13 +76,11 @@ export class PlatformAuthController {
   @Post('/linkedin')
   async signInWithLinkedIn(
     @Body() body: SignInWithLinkedInDto,
-    @Res() res: Response,
   ) {
     try {
       const result = await this.authService.signinWithLinkedIn(body);
-      setResponseCookies(res, result, { secure: true, sameSite: 'none' });
       return ResponseUtil.success(
-        null,
+        result,
         'Logged in successfully',
         HttpStatus.OK,
       );
@@ -124,7 +119,6 @@ export class PlatformAuthController {
   @Public()
   async companyRegisterVerify(
     @Body() verifyOtp: VerifyDto,
-    @Res() res: Response,
   ) {
     try {
       const payload = await this.authService.verify(
@@ -133,8 +127,7 @@ export class PlatformAuthController {
         verifyOtp.userType,
       );
 
-      setResponseCookies(res, payload);
-      return ResponseUtil.success('Otp verified successfully');
+      return ResponseUtil.success(payload, 'Otp verified successfully');
     } catch (err) {
       throw new CustomHttpException(
         err?.message,
