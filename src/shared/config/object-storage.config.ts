@@ -7,6 +7,7 @@ const DigitalOceanConfig = registerAs('digitalOcean', () => ({
   endpoint: String(process.env.DO_SPACES_ENDPOINT ?? 'digitaloceanspaces.com'),
   region: String(process.env.DO_SPACES_REGION ?? 'sfo3'),
   bucketName: String(process.env.DO_SPACES_BUCKET_NAME ?? 'dalla'),
+  publicBaseUrl: String(process.env.DO_SPACES_PUBLIC_BASE_URL ?? ''),
   cdnCustomDomain: String(process.env.DO_SPACES_SUBDOMAIN ?? ''),
   cdnDisabled: process.env.DO_SPACES_CDN_DISABLED === 'true',
 }));

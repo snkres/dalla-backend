@@ -20,6 +20,6 @@ export class UploadService {
     );
 
     const hash = `${String(UUID)}`;
-    return `${this.objectStorageService.getCdnEndpoint()}${hash}`;
+    return `${this.objectStorageService.getPublicEndpoint()}${hash}`;
   }
 }

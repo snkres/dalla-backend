@@ -21,6 +21,7 @@ type ResolvedObjectStorageConfig = {
   serviceEndpoint: string;
   originEndpoint: string;
   cdnEndpoint: string;
+  publicEndpoint: string;
   configurationIssue?: string;
 };
 
@@ -35,6 +36,9 @@ export class ObjectStorageService {
 
   public getCdnEndpoint = (): string =>
     this.resolvedConfig.cdnEndpoint;
+
+  public getPublicEndpoint = (): string =>
+    this.resolvedConfig.publicEndpoint;
 
   constructor(
     @Inject(DigitalOceanConfig.KEY)
@@ -166,7 +170,8 @@ export class ObjectStorageService {
       `region=${this.resolvedConfig.region || '<missing>'} ` +
       `serviceEndpoint=${this.resolvedConfig.serviceEndpoint} ` +
       `originEndpoint=${this.resolvedConfig.originEndpoint} ` +
-      `cdnEndpoint=${this.resolvedConfig.cdnEndpoint}`;
+      `cdnEndpoint=${this.resolvedConfig.cdnEndpoint} ` +
+      `publicEndpoint=${this.resolvedConfig.publicEndpoint}`;
 
     if (this.resolvedConfig.configurationIssue) {
       this.logger.warn(
@@ -181,10 +186,12 @@ export class ObjectStorageService {
   private resolveConfig(): ResolvedObjectStorageConfig {
     const bucketName = this.config.bucketName.trim();
     const endpoint = this.parseHost(this.config.endpoint);
+    const publicBaseUrl = this.parseHost(this.config.publicBaseUrl);
     const cdnCustomDomain = this.parseHost(this.config.cdnCustomDomain);
     const protocol = this.resolveProtocol(
       this.config.protocol,
       endpoint.protocol,
+      publicBaseUrl.protocol,
       cdnCustomDomain.protocol,
     );
     const region = this.resolveRegion(endpoint.host);
@@ -205,6 +212,11 @@ export class ObjectStorageService {
       serviceEndpoint: `${protocol}://${serviceHost}`,
       originEndpoint: `${protocol}://${originHost}/`,
       cdnEndpoint: `${protocol}://${this.config.cdnDisabled ? originHost : cdnHost}/`,
+      publicEndpoint: `${protocol}://${this.resolvePublicHost(
+        publicBaseUrl.host,
+        cdnCustomDomain.host,
+        originHost,
+      )}/`,
       configurationIssue: this.validateResolvedConfig(endpoint.host, bucketName, region),
     };
   }
@@ -320,6 +332,22 @@ export class ObjectStorageService {
         endpointHost.endsWith('.digitaloceanspaces.com'))
     ) {
       return `${bucketName}.${region}.cdn.digitaloceanspaces.com`;
+    }
+
+    return originHost;
+  }
+
+  private resolvePublicHost(
+    publicBaseUrlHost: string,
+    customCdnHost: string,
+    originHost: string,
+  ): string {
+    if (publicBaseUrlHost !== '') {
+      return publicBaseUrlHost;
+    }
+
+    if (customCdnHost !== '' && !this.config.cdnDisabled) {
+      return customCdnHost;
     }
 
     return originHost;
