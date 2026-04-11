@@ -6,6 +6,7 @@ import {
   UseInterceptors,
   HttpStatus,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
@@ -16,6 +17,8 @@ import { AuthGuard } from '../auth/platform/guards/auth.guard';
 @Controller('upload')
 @UseGuards(AuthGuard())
 export class UploadController {
+  private readonly logger = new Logger(UploadController.name);
+
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('')
@@ -40,7 +43,10 @@ export class UploadController {
         HttpStatus.OK,
       );
     } catch (err) {
-      console.log(err);
+      this.logger.error(
+        `Upload request failed for file=${file?.originalname ?? '<unknown>'}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       throw new CustomHttpException(
         err?.message,
         {
