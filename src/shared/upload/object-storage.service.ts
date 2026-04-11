@@ -256,6 +256,7 @@ export class ObjectStorageService {
   private resolveProtocol(
     configuredProtocol: string,
     endpointProtocol?: string,
+    publicBaseUrlProtocol?: string,
     cdnProtocol?: string,
   ): string {
     const protocol = configuredProtocol
@@ -263,7 +264,13 @@ export class ObjectStorageService {
       .replace(/^https?:\/\//i, '')
       .replace(/:$/, '')
       .toLowerCase();
-    return protocol || endpointProtocol || cdnProtocol || 'https';
+    return (
+      protocol ||
+      endpointProtocol ||
+      publicBaseUrlProtocol ||
+      cdnProtocol ||
+      'https'
+    );
   }
 
   private resolveRegion(endpointHost: string): string {
